@@ -305,6 +305,16 @@ if(SEL4_CONFIG_DEFAULT_ADVANCED)
     mark_as_advanced(KernelDomainSchedule)
 endif()
 
+config_option(
+    KernelDomainCodePartitioning DOMAIN_CODE_PARTITIONING "Enable kernel code partitioning by domain"
+    DEFAULT OFF
+)
+
+config_option(
+    KernelDomainIrqPartitioning DOMAIN_IRQ_PARTITIONING "Enable IRQ partitioning by domain"
+    DEFAULT OFF
+)
+
 config_string(
     KernelNumPriorities NUM_PRIORITIES "The number of priority levels per domain. Valid range 1-256"
     DEFAULT 256

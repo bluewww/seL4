@@ -190,6 +190,22 @@ static inline void maskInterrupt(bool_t disable, irq_t irq)
 }
 
 /**
+ * Disable or enable a list of IRQs.
+ *
+ * maskInterrupts disables and enables the listed IRQs. The list must be in an
+ * array of size DOMAIN_IRQ_LIST_SIZE but may be terminated early by irqInvalid.
+
+ * @param[in]  disable  The disable
+ * @param[in]  irqs     The irq list
+ */
+static inline void maskInterrupts(bool_t disable, const irq_t *irqs)
+{
+    for (int i = 0; i < DOMAIN_IRQ_LIST_SIZE && irqs[i] != irqInvalid; i++) {
+        maskInterrupt(disable, irqs[i]);
+    }
+}
+
+/**
  * Kernel has dealt with the pending interrupt getActiveIRQ can return next IRQ.
  *
  * ackInterrupt is used by the kernel to indicate it has processed the interrupt

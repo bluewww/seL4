@@ -343,7 +343,25 @@ static void switchSchedContext(void)
 static void scheduleChooseNewThread(void)
 {
     if (ksDomainTime == 0) {
+#ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
+        /* we delay masking off the old domain's irqs until it forms an
+         * uninterrupted block of code after the change of ksCurDomain by
+         * nextDomain, for verification reasons */
+        word_t old_dom_idx = ksDomScheduleIdx;
+#endif
         nextDomain();
+#ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
+        maskInterrupts(true, ksDomSchedule[old_dom_idx].irqs);
+#endif
+#ifdef CONFIG_DOMAIN_CODE_PARTITIONING
+        arch_switch_domain_kernel(ksDomScheduleIdx);
+#endif
+#ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
+        maskInterrupts(false, ksDomSchedule[ksDomScheduleIdx].irqs);
+#endif
+#ifdef CONFIG_DOMAIN_CODE_PARTITIONING
+        arch_domainswitch_flush();
+#endif
     }
     chooseThread();
 }

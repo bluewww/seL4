@@ -27,9 +27,17 @@ enum irq_state {
 };
 typedef word_t irq_state_t;
 
+/* FIXME: Maybe make this a ccmake config option */
+#define DOMAIN_IRQ_LIST_SIZE 32
+
 typedef struct dschedule {
     dom_t domain;
     word_t length;
+#ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
+    /* FIXME: this should be irq_t but we can't depend on it here.
+     * irq_t is just word_t for riscv but might not be for other platforms. */
+    word_t irqs[DOMAIN_IRQ_LIST_SIZE];
+#endif
 } dschedule_t;
 
 enum asidSizeConstants {

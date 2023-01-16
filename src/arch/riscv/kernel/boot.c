@@ -440,8 +440,16 @@ static BOOT_CODE bool_t try_init_kernel(
      * BKL here to play safe. It is released when the kernel is left. */
     NODE_LOCK_SYS;
 
+#ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
+    printf("Domain IRQ partitioning is on.\n");
+#endif
+#ifdef CONFIG_DOMAIN_CODE_PARTITIONING
+    printf("Domain kernel code partitioning is not yet supported.\n");
+    return false;
+#else
     printf("Booting all finished, dropped to user space\n");
     return true;
+#endif
 }
 
 BOOT_CODE VISIBLE void init_kernel(
