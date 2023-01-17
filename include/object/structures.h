@@ -15,6 +15,9 @@
 #include <sel4/arch/constants.h>
 #include <sel4/sel4_arch/constants.h>
 #include <benchmark/benchmark_utilisation_.h>
+#ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
+#include <machine/interrupt.h>
+#endif
 
 enum irq_state {
     IRQInactive  = 0,
@@ -27,16 +30,11 @@ enum irq_state {
 };
 typedef word_t irq_state_t;
 
-/* FIXME: Maybe make this a ccmake config option */
-#define DOMAIN_IRQ_LIST_SIZE 32
-
 typedef struct dschedule {
     dom_t domain;
     word_t length;
 #ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
-    /* FIXME: this should be irq_t but we can't depend on it here.
-     * irq_t is just word_t for riscv but might not be for other platforms. */
-    word_t irqs[DOMAIN_IRQ_LIST_SIZE];
+    irq_t irqs[CONFIG_MAX_NUM_DIRQS];
 #endif
 } dschedule_t;
 

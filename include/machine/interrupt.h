@@ -87,8 +87,8 @@ static inline void maskInterrupt(bool_t disable, irq_t irq);
 /**
  * maskInterrupts disables and enables the listed IRQs.
  *
- * The list must be in an array of size DOMAIN_IRQ_LIST_SIZE but may be
- * terminated early by irqInvalid.
+ * The list must be in a CONFIG_MAX_NUM_DIRQS sized array but may be terminated
+ * early by irqInvalid.
  *
  * @param[in]  disable  True to disable IRQs, False to enable IRQs
  * @param[in]  irqs     The list of irqs to modify

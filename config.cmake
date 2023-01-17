@@ -311,8 +311,15 @@ config_option(
 )
 
 config_option(
-    KernelDomainIrqPartitioning DOMAIN_IRQ_PARTITIONING "Enable IRQ partitioning by domain"
+    KernelDomainIRQPartitioning DOMAIN_IRQ_PARTITIONING "Enable IRQ partitioning by domain"
     DEFAULT OFF
+)
+
+config_string(
+    KernelMaxNumDIRQs MAX_NUM_DIRQS "The maximum number of IRQs that can be associated with each domain"
+    DEFAULT 32
+    DEPENDS "KernelDomainIRQPartitioning"
+    UNQUOTE
 )
 
 config_option(

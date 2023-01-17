@@ -192,15 +192,15 @@ static inline void maskInterrupt(bool_t disable, irq_t irq)
 /**
  * Disable or enable a list of IRQs.
  *
- * maskInterrupts disables and enables the listed IRQs. The list must be in an
- * array of size DOMAIN_IRQ_LIST_SIZE but may be terminated early by irqInvalid.
+ * maskInterrupts disables and enables the listed IRQs. The list must be in a
+ * CONFIG_MAX_NUM_DIRQS sized array but may be terminated early by irqInvalid.
 
  * @param[in]  disable  The disable
  * @param[in]  irqs     The irq list
  */
 static inline void maskInterrupts(bool_t disable, const irq_t *irqs)
 {
-    for (int i = 0; i < DOMAIN_IRQ_LIST_SIZE && irqs[i] != irqInvalid; i++) {
+    for (int i = 0; i < CONFIG_MAX_NUM_DIRQS && irqs[i] != irqInvalid; i++) {
         maskInterrupt(disable, irqs[i]);
     }
 }

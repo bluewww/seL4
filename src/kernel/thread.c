@@ -344,9 +344,9 @@ static void scheduleChooseNewThread(void)
 {
     if (ksDomainTime == 0) {
 #ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
-        /* we delay masking off the old domain's irqs until it forms an
-         * uninterrupted block of code after the change of ksCurDomain by
-         * nextDomain, for verification reasons */
+        /* TODO: determine if we really do need, for verification reasons,
+         * to delay the masking off of the old domain's irqs until after the
+         * change of ksCurDomain by nextDomain; can we just mask them here? */
         word_t old_dom_idx = ksDomScheduleIdx;
 #endif
         nextDomain();
