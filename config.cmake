@@ -315,6 +315,11 @@ config_option(
     DEFAULT OFF
 )
 
+config_option(
+    KernelDomainMicroarchFlush DOMAIN_MICROARCH_FLUSH "Enable determinisation (by flushing or other means) of microarchitectural state and related timing effects on domain switch"
+    DEFAULT OFF
+)
+
 config_string(
     KernelNumPriorities NUM_PRIORITIES "The number of priority levels per domain. Valid range 1-256"
     DEFAULT 256

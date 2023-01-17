@@ -359,7 +359,7 @@ static void scheduleChooseNewThread(void)
 #ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
         maskInterrupts(false, ksDomSchedule[ksDomScheduleIdx].irqs);
 #endif
-#ifdef CONFIG_DOMAIN_CODE_PARTITIONING
+#ifdef CONFIG_DOMAIN_MICROARCH_FLUSH
         arch_domainswitch_flush();
 #endif
     }
