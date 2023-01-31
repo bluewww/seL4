@@ -4,6 +4,10 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#ifdef HAVE_AUTOCONF
+#include <autoconf.h>
+#endif
+
 #include <sel4/sel4.h>
 
 #ifdef CONFIG_KERNEL_INVOCATION_REPORT_ERROR_IPC
@@ -26,3 +30,10 @@ seL4_BootInfo *seL4_GetBootInfo()
 {
     return bootinfo;
 }
+
+#ifdef CONFIG_KERNEL_IMAGES
+/** The bits resolved by each level of the kernel image virtual address space */
+seL4_Word __sel4_kernel_image_level_index_bits[seL4_KernelImageNumLevels] = SEL4_KERNEL_IMAGE_LEVEL_INDEX_BITS;
+/** The size in bits of each level of the kernel image virtual address space */
+seL4_Word __sel4_kernel_image_level_size_bits[seL4_KernelImageNumLevels] = SEL4_KERNEL_IMAGE_LEVEL_SIZE_BITS;
+#endif

@@ -103,6 +103,9 @@ typedef word_t notification_state_t;
 #define REPLY_REF(p) ((word_t) (p))
 #define REPLY_PTR(r) ((reply_t *) (r))
 
+#define KM_REF(p) ((word_t) (p))
+#define KM_PTR(r) ((unsigned char *) (r))
+
 #define WORD_PTR(r) ((word_t *)(r))
 #define WORD_REF(p) ((word_t)(p))
 
@@ -415,6 +418,10 @@ compile_assert(sc_core_size_sane, (sizeof(sched_context_t) + MIN_REFILLS *sizeof
                                    seL4_CoreSchedContextBytes))
 compile_assert(reply_size_sane, sizeof(reply_t) == BIT(seL4_ReplyBits))
 compile_assert(refill_size_sane, (sizeof(refill_t) == seL4_RefillSizeBytes))
+#endif
+
+#ifdef CONFIG_KERNEL_IMAGES
+compile_assert(ki_size_sane, (sizeof(kernel_image_t) <= BIT(seL4_KernelImageBits)))
 #endif
 
 /* helper functions */

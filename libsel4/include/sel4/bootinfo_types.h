@@ -9,6 +9,8 @@
 #include <autoconf.h>
 #include <sel4/macros.h>
 
+#include <sel4/sel4_arch/constants.h>
+
 /* caps with fixed slot positions in the root CNode */
 enum {
     seL4_CapNull                =  0, /* null cap */
@@ -68,6 +70,10 @@ typedef struct seL4_BootInfo {
     seL4_Domain       initThreadDomain; /* Initial thread's domain ID */
 #ifdef CONFIG_KERNEL_MCS
     seL4_SlotRegion   schedcontrol; /* Caps to sched_control for each node */
+#endif
+#ifdef CONFIG_KERNEL_IMAGES
+    /* Number of memory objects of each level needed to map a kernel image */
+    seL4_Word         kernelImageLevelCount[seL4_KernelImageNumLevels];
 #endif
     seL4_SlotRegion   untyped;         /* untyped-object caps (untyped caps) */
     seL4_UntypedDesc  untypedList[CONFIG_MAX_NUM_BOOTINFO_UNTYPED_CAPS]; /* information about each untyped */

@@ -36,6 +36,11 @@
 
 #endif /* [not] __ASSEMBLER__ */
 
+/* Number of bits represented by an unsigned char */
+#define CHAR_BIT 8
+#define TYPE_BITS(t) ((sizeof(t)) * CHAR_BIT)
+#define BITS_TO_TYPE(n, t) (((n) / TYPE_BITS(t)) + (((n) % TYPE_BITS(t)) ? 1llu : 0llu))
+
 #define BIT(n) (UL_CONST(1) << (n))
 #define MASK(n) (BIT(n) - UL_CONST(1))
 #define IS_ALIGNED(n, b) (!((n) & MASK(b)))

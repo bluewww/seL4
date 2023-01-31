@@ -108,6 +108,13 @@ typedef enum {
 #endif /* !__ASSEMBLER__ */
 #endif /* CONFIG_KERNEL_MCS */
 
+#ifdef CONFIG_KERNEL_IMAGES
+#ifndef __ASSEMBLER__
+/* Size of a kernel image object */
+#define seL4_KernelImageSizeBits 7
+#endif /* !__ASSEMBLER__ */
+#endif /* CONFIG_KERNEL_IMAGES */
+
 #ifdef CONFIG_KERNEL_INVOCATION_REPORT_ERROR_IPC
 #define DEBUG_MESSAGE_START 6
 #define DEBUG_MESSAGE_MAXLEN 50

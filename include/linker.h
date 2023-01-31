@@ -24,6 +24,15 @@
 /* data will be aligned to n bytes in a special BSS section */
 #define ALIGN_BSS(n) ALIGN(n) SECTION(".bss.aligned")
 
+/* non-shared bss data that is not shared between multiple kernel images*/
+#define KERNEL_NODE_LOCAL SECTION(".bss.node_local")
+
+/* the idle thread TCB block*/
+#define KERNEL_IDLE_THREAD SECTION(".bss.idle_thread")
+
+/* globally mapped code for switching kernel address space */
+#define KERNEL_CODE_SWITCH SECTION(".text.switch")
+
 /* data that will be mapped into and permitted to be used in the restricted SKIM
  * address space */
 #define SKIM_DATA SECTION(".skim.data")

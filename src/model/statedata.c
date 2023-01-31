@@ -59,6 +59,15 @@ UP_STATE_DEFINE(sched_context_t *, ksCurSC);
 UP_STATE_DEFINE(sched_context_t *, ksIdleSC);
 #endif
 
+#ifdef CONFIG_KERNEL_IMAGES
+/* Root paging structure of the current kernel image */
+UP_STATE_DEFINE(kernel_image_t *, ksCurKernelImage);
+/* Flag to indicate the kernel image was switched since entry into the
+ * kernel. This is used to determine whether a flush should occur on
+ * exit */
+UP_STATE_DEFINE(bool_t, ksKernelImageChanged);
+#endif
+
 #ifdef CONFIG_DEBUG_BUILD
 UP_STATE_DEFINE(tcb_t *, ksDebugTCBs);
 #endif /* CONFIG_DEBUG_BUILD */
@@ -103,6 +112,10 @@ SECTION("._idle_thread") char ksIdleThreadTCB[CONFIG_MAX_NUM_NODES][BIT(seL4_TCB
 #ifdef CONFIG_KERNEL_MCS
 /* Idle thread Schedcontexts */
 char ksIdleThreadSC[CONFIG_MAX_NUM_NODES][BIT(seL4_MinSchedContextBits)] ALIGN(BIT(seL4_MinSchedContextBits));
+#endif
+
+#ifdef CONFIG_KERNEL_IMAGES
+kernel_image_t ksInitialKernelImage;
 #endif
 
 #if (defined CONFIG_DEBUG_BUILD || defined CONFIG_BENCHMARK_TRACK_KERNEL_ENTRIES)

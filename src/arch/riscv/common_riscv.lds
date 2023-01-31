@@ -21,6 +21,8 @@ SECTIONS
 {
     . = KERNEL_ELF_BASE;
 
+    ki_boot_start = .;
+
     .boot.text . : AT(ADDR(.boot.text) - KERNEL_OFFSET)
     {
         *(.boot.text)
@@ -41,6 +43,10 @@ SECTIONS
 
     ki_boot_end = .;
 
+    ki_start = .;
+    ki_elf_start = .;
+    ki_text_start = .;
+
     .text . : AT(ADDR(.text) - KERNEL_OFFSET)
     {
         . = ALIGN(4K);
@@ -48,7 +54,17 @@ SECTIONS
 
         /* Standard kernel */
         *(.text)
+
+        ki_text_end = .;
+
+        /* Kernel image switch code */
+        . = ALIGN(4K);
+        ki_switch_start = .;
+        *(.text.switch)
+        ki_switch_end = .;
     }
+
+    ki_private_start = .;
 
     /* Start of data section */
     _sdata = .;
@@ -80,6 +96,19 @@ SECTIONS
 
     .bss . (NOLOAD): AT(ADDR(.bss) - KERNEL_OFFSET)
     {
+        /* node-local bss regions, not modified after boot */
+        *(.bss.node_local)
+        ki_private_end = .;
+
+        /* per-image idle thread TCBs */
+        . = ALIGN(4K);
+        ki_idle_thread_start = .;
+        *(.bss.idle_thread)
+        ki_idle_thread_end = .;
+
+        /* shared BSS data */
+        ki_shared_start = .;
+
         *(.bss)
         *(COMMON) /* fallback in case '-fno-common' is not used */
 
@@ -93,5 +122,10 @@ SECTIONS
     }
 
     . = ALIGN(4K);
+    ki_shared_end = .;
+    ki_elf_end = .;
     ki_end = .;
+
+    /* The start of the physically mapped free memory */
+    ki_freemem_start = .;
 }

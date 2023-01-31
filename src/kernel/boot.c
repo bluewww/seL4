@@ -16,6 +16,9 @@
 #include <linker.h>
 #include <hardware.h>
 #include <util.h>
+#ifdef CONFIG_KERNEL_IMAGES
+#include <object/kernelimage.h>
+#endif
 
 /* (node-local) state accessed only during bootstrapping */
 BOOT_BSS ndks_boot_t ndks_boot;
@@ -342,6 +345,10 @@ BOOT_CODE void populate_bi_frame(node_id_t node_id, word_t num_nodes,
 
     ndks_boot.bi_frame = bi;
     ndks_boot.slot_pos_cur = seL4_NumInitialCaps;
+
+#ifdef CONFIG_KERNEL_IMAGES
+    copyKernelImageLevelCount(bi->kernelImageLevelCount);
+#endif
 }
 
 BOOT_CODE bool_t provide_cap(cap_t root_cnode_cap, cap_t cap)
@@ -438,6 +445,49 @@ BOOT_CODE bool_t init_sched_control(cap_t root_cnode_cap, word_t num_nodes)
     };
 
     return true;
+}
+#endif
+
+#ifdef CONFIG_KERNEL_IMAGES
+BOOT_CODE bool_t init_kernel_image(kernel_image_t *image)
+{
+    /* Set the initial kernel image */
+    NODE_STATE(ksCurKernelImage) = image;
+
+    /* Initialise the kernel image levels */
+    initKernelImageLevelCount();
+
+    /* Then need to create a new kernel image but instead of using new
+     * pages for mappings the mappings come from the initial thread's
+     * vspace. This assumes that the vspace has already had the entire
+     * kernel region mapped. */
+    image->kiRoot = ksGlobalKernelImage;
+
+    /* Then need to assign the inital vspace to the created image */
+
+    /* All memories should already be mapped */
+    image->kiMemoriesMapped = kernelImageRequiredMemories();
+
+    /* The image has already had the initial data copied to it */
+    image->kiCopied = true;
+
+    /* The image is runnable (we're already running on it) */
+    image->kiRunnable = true;
+
+    return true;
+}
+
+BOOT_CODE cap_t create_kernel_image_cap(cap_t root_cnode_cap)
+{
+    /* create a cap of it and write it into the root CNode */
+    if (!init_kernel_image(&ksInitialKernelImage)) {
+        return cap_null_cap_new();
+    }
+
+    cap_t cap = cap_kernel_image_cap_new((word_t)(&ksInitialKernelImage), true);
+    write_slot(SLOT_PTR(pptr_of_cap(root_cnode_cap), seL4_CapInitKernelImage), cap);
+
+    return cap;
 }
 #endif
 

@@ -515,6 +515,15 @@ config_option(
     DEPENDS "KernelArchX86 OR KernelPlatformHikey"
 )
 
+config_option(
+    KernelImages KERNEL_IMAGES "The kernel window mapping does not contain global entries (except \
+	for the global data section), instead the kernel mapping switches \
+	according to the one chosen by the TCB config.  The default kernel \
+	window mapping is created during bootup stage, and cannot be \
+	deleted."
+    DEFAULT OFF
+)
+
 # Builds the kernel with support for an invocation to set the TLS_BASE
 # of the currently running thread without a capability.
 config_set(KernelSetTLSBaseSelf SET_TLS_BASE_SELF ${KernelSetTLSBaseSelf})

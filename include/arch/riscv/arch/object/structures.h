@@ -21,7 +21,7 @@
 #define tcbArchCNodeEntries tcbCNodeEntries
 
 struct asid_pool {
-    pte_t *array[BIT(asidLowBits)];
+    asid_map_t array[BIT(asidLowBits)];
 };
 
 typedef struct asid_pool asid_pool_t;
@@ -46,10 +46,17 @@ typedef word_t vm_rights_t;
 
 typedef pte_t vspace_root_t;
 
+#ifdef CONFIG_KERNEL_IMAGES
+typedef pte_t kernel_image_root_t;
+#define KEI_ROOT_INDEX_BITS  seL4_PageTableIndexBits
+#endif /* CONFIG_KERNEL_IMAGES */
+
 /* Generic fastpath.c code expects pde_t for stored_hw_asid
  * that's a workaround in the time being.
  */
 typedef pte_t pde_t;
+
+#define VSPACE_PTR(r)       ((vspace_root_t *)(r))
 
 #define PTE_PTR(r) ((pte_t *)(r))
 #define PTE_REF(p) ((word_t)(p))
@@ -63,6 +70,52 @@ typedef pte_t pde_t;
 
 #define WORD_BITS   (8 * sizeof(word_t))
 #define WORD_PTR(r) ((word_t *)(r))
+
+#ifdef CONFIG_KERNEL_IMAGES
+struct kernel_image {
+    /* The virtual ASID used to identify the image. */
+    asid_t kiASID;
+
+    /* The number of KernelMemory objects already mapped into the image. */
+    word_t kiMemoriesMapped;
+
+    /* The root of the virtual address space. */
+    kernel_image_root_t *kiRoot;
+
+    /* A bitmap of which nodes have ever executed using this image. */
+    word_t kiNodesExecuted[BITS_TO_TYPE(CONFIG_MAX_NUM_NODES, word_t)];
+
+#if 0
+    /* TODO: Figure out how to make the maxIRQ symbol visible here for
+     * arm and riscv without intorducing circular dependencies in
+     * headers */
+    /* A bitmap of which IRQs have been unmasked under this image. */
+    word_t kiIRQsUnmasked[BITS_TO_TYPE(maxIRQ, word_t)];
+#endif
+
+    /* Whether it is valid to run a thread in this image.
+     *
+     * When invalidating the image, this is set to false before
+     * triggering other cores to reschedule. This ensures that after all
+     * other cores have rescheduled none will be running threads in this
+     * image and it is safe to remove all mappings. */
+    bool_t kiRunnable;
+
+    /* Whether the kernel data has been copied. */
+    bool_t kiCopied;
+};
+typedef struct kernel_image kernel_image_t;
+
+#define KI_REF(p) ((word_t) (p))
+#define KI_PTR(r) ((kernel_image_t *) (r))
+
+static inline asid_t cap_kernel_image_cap_get_capKIMappedASID(cap_t cap)
+{
+    assert(cap_get_capType(cap) == cap_kernel_image_cap);
+    kernel_image_t *image = KI_PTR(cap_kernel_image_cap_get_capKIBasePtr(cap));
+    return image->kiASID;
+}
+#endif
 
 static inline bool_t CONST cap_get_archCapIsPhysical(cap_t cap)
 {

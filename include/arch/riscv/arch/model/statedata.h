@@ -36,3 +36,8 @@ extern pte_t kernel_image_level2_dev_pt[BIT(PT_INDEX_BITS)];
 extern pte_t kernel_image_level2_log_buffer_pt[BIT(PT_INDEX_BITS)];
 #endif
 
+#ifdef CONFIG_KERNEL_IMAGES
+/* Initial kernel image vspace */
+#define ksGlobalKernelImage  kernel_root_pageTable
+#endif /* CONFIG_KERNEL_IMAGES */
+

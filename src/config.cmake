@@ -48,3 +48,4 @@ add_sources(
         src/object/schedcontrol.c
         src/kernel/sporadic.c
 )
+add_sources(DEP KernelImages CFILES src/object/kernelimage.c)

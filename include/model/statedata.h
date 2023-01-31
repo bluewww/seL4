@@ -72,6 +72,11 @@ NODE_STATE_DECLARE(sched_context_t, *ksCurSC);
 NODE_STATE_DECLARE(sched_context_t, *ksIdleSC);
 #endif
 
+#ifdef CONFIG_KERNEL_IMAGES
+NODE_STATE_DECLARE(kernel_image_t *, ksCurKernelImage);
+NODE_STATE_DECLARE(bool_t, ksKernelImageChanged);
+#endif
+
 #ifdef CONFIG_HAVE_FPU
 /* Current state installed in the FPU, or NULL if the FPU is currently invalid */
 NODE_STATE_DECLARE(user_fpu_state_t *, ksActiveFPUState);
@@ -118,6 +123,10 @@ extern char ksIdleThreadTCB[CONFIG_MAX_NUM_NODES][BIT(seL4_TCBBits)];
 
 #ifdef CONFIG_KERNEL_MCS
 extern char ksIdleThreadSC[CONFIG_MAX_NUM_NODES][BIT(seL4_MinSchedContextBits)];
+#endif
+
+#ifdef CONFIG_KERNEL_IMAGES
+extern kernel_image_t ksInitialKernelImage;
 #endif
 
 #ifdef CONFIG_KERNEL_LOG_BUFFER

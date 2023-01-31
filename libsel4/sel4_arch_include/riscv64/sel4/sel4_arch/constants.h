@@ -28,6 +28,9 @@
 #else
 #define seL4_TCBBits            10
 #endif
+#ifdef CONFIG_KERNEL_IMAGES
+#define seL4_KernelImageBits    7
+#endif
 
 /* Sv39/Sv48 pages/ptes sizes */
 #define seL4_PageTableEntryBits 3
@@ -43,6 +46,32 @@
 #define seL4_NumASIDPoolsBits   7
 #define seL4_ASIDPoolIndexBits  9
 #define seL4_ASIDPoolBits       12
+
+#ifdef CONFIG_KERNEL_IMAGES
+/* Number of levels in the virtual address space */
+#define seL4_KernelImageNumLevels 4
+/* Size of KernelMemory objects in each level in the virtual address space */
+#define SEL4_KERNEL_IMAGE_LEVEL_SIZE_BITS { \
+    seL4_PageTableBits, \
+    seL4_PageTableBits, \
+    seL4_PageTableBits, \
+    seL4_PageBits \
+}
+/* Number of bits indexed at each level in the virtual address space */
+#define SEL4_KERNEL_IMAGE_LEVEL_INDEX_BITS { \
+    seL4_PageTableIndexBits, \
+    seL4_PageTableIndexBits, \
+    seL4_PageTableIndexBits, \
+    seL4_PageBits \
+}
+/* Total number of bits virtually addressable in a kernel image */
+#define seL4_KernelImageTranslationBits ( \
+    seL4_PageTableIndexBits + \
+    seL4_PageTableIndexBits + \
+    seL4_PageTableIndexBits + \
+    seL4_PageBits \
+)
+#endif
 
 /* Untyped size limits */
 #define seL4_MinUntypedBits     4
