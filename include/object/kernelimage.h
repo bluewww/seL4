@@ -279,16 +279,6 @@ static inline word_t kernelImagePagesCopied(ki_region_t region)
     }
 }
 
-/* Lookup the kernel image associated with a given kernel memory
- * capability */
-static inline kernel_image_t *kernelMemoryMappedImage(cap_t memory)
-{
-    assert(cap_kernel_memory_cap_get_capKMIsMapped(memory));
-
-    asid_t image_asid = cap_kernel_memory_cap_get_capKMMappedASID(memory);
-    return findKernelImageForASID(image_asid);
-}
-
 /* Initialise the number of memories needed to map each level of the
  * kernel virtual address space. */
 void initKernelImageLevelCount(void);
@@ -352,24 +342,12 @@ ki_mapping_t locateNextKernelMemory(kernel_image_t *image);
  * for the given level and addres without a mapping at the specified
  * level or address.
  */
-exception_t kernelMemoryMap(kernel_image_t *image, ki_mapping_t *mapping, cap_t *memory);
+exception_t kernelMemoryMap(kernel_image_t *image, ki_mapping_t *mapping, void *memory_addr);
 
 /**
  * Copy all of the duplicated data and shared mappings from a source
  * kernel image to a writeable destination image.
  */
 exception_t kernelImageClone(kernel_image_t *dest, kernel_image_t *src);
-
-/* Bind a kernel image to a given vspace */
-exception_t kernelImageBindVSpace(kernel_image_t *image, asid_t vspace_asid);
-
-/* Invocation on a kernel memory object */
-exception_t decodeKernelMemoryInvocation(word_t label, cte_t *slot, cap_t cap, extra_caps_t extraCaps, word_t *buffer);
-
-/* Invocation on a kernel image object */
-exception_t decodeKernelImageInvocation(word_t label, cap_t cap, extra_caps_t extraCaps, word_t *buffer);
-
-/* Unmap all kernel memories from the provided kernel image. */
-void unmapKernelImage(kernel_image_t *image);
 
 #endif /* __OBJECT_KERNEL_IMAGE_H */

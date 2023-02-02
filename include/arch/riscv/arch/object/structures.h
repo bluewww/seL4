@@ -21,7 +21,7 @@
 #define tcbArchCNodeEntries tcbCNodeEntries
 
 struct asid_pool {
-    asid_map_t array[BIT(asidLowBits)];
+    pte_t *array[BIT(asidLowBits)];
 };
 
 typedef struct asid_pool asid_pool_t;
@@ -48,7 +48,6 @@ typedef pte_t vspace_root_t;
 
 #ifdef CONFIG_KERNEL_IMAGES
 typedef pte_t kernel_image_root_t;
-#define KEI_ROOT_INDEX_BITS  seL4_PageTableIndexBits
 #endif /* CONFIG_KERNEL_IMAGES */
 
 /* Generic fastpath.c code expects pde_t for stored_hw_asid
@@ -73,9 +72,6 @@ typedef pte_t pde_t;
 
 #ifdef CONFIG_KERNEL_IMAGES
 struct kernel_image {
-    /* The virtual ASID used to identify the image. */
-    asid_t kiASID;
-
     /* The number of KernelMemory objects already mapped into the image. */
     word_t kiMemoriesMapped;
 
@@ -106,15 +102,6 @@ struct kernel_image {
 };
 typedef struct kernel_image kernel_image_t;
 
-#define KI_REF(p) ((word_t) (p))
-#define KI_PTR(r) ((kernel_image_t *) (r))
-
-static inline asid_t cap_kernel_image_cap_get_capKIMappedASID(cap_t cap)
-{
-    assert(cap_get_capType(cap) == cap_kernel_image_cap);
-    kernel_image_t *image = KI_PTR(cap_kernel_image_cap_get_capKIBasePtr(cap));
-    return image->kiASID;
-}
 #endif
 
 static inline bool_t CONST cap_get_archCapIsPhysical(cap_t cap)

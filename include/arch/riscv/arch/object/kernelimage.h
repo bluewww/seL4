@@ -18,10 +18,6 @@
 #include <api/failures.h>
 #include <mode/object/kernelimage.h>
 
-/* Is the kernel image assigned an ASID that correctly refers to that
- * image? */
-bool_t Arch_kernelImageASIDValid(kernel_image_t *image);
-
 /* Map the provided memory with the given mapping parameters */
 exception_t Arch_kernelMemoryMap(kernel_image_t *image, ki_mapping_t *mapping, paddr_t memory_addr);
 

@@ -65,7 +65,6 @@ bool_t init_sched_control(cap_t root_cnode_cap, word_t num_nodes);
 
 #ifdef CONFIG_KERNEL_IMAGES
 bool_t init_kernel_image(kernel_image_t *kernel_image);
-cap_t create_kernel_image_cap(cap_t root_cnode_cap);
 #endif
 
 typedef struct create_frames_of_region_ret {

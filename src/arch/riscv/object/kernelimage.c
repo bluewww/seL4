@@ -43,18 +43,6 @@ static inline lookupPTSlot_ret_t Arch_kiLookupPTSlot(pte_t *lvl1pt, vptr_t vptr,
     return ret;
 }
 
-bool_t Arch_kernelImageASIDValid(kernel_image_t *image)
-{
-    asid_map_t asid_map = findMapForASID(image->kiASID);
-    if (asid_map_get_type(asid_map) != asid_map_asid_map_kernel_image) {
-        return false;
-    }
-
-    kernel_image_t *mapped = KI_PTR(asid_map_asid_map_kernel_image_get_kernel_image(asid_map));
-
-    return mapped == image;
-}
-
 exception_t Arch_kernelMemoryMap(kernel_image_t *image, ki_mapping_t *mapping, paddr_t memory_addr)
 {
     assert(mapping->kimRegion < KINumRegions);

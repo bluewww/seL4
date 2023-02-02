@@ -192,9 +192,6 @@ static BOOT_CODE bool_t try_init_kernel(
 )
 {
     cap_t root_cnode_cap;
-#ifdef CONFIG_KERNEL_IMAGES
-    cap_t it_kimage_cap;
-#endif
     cap_t it_pd_cap;
     cap_t it_ap_cap;
     cap_t ipcbuf_cap;
@@ -294,10 +291,6 @@ static BOOT_CODE bool_t try_init_kernel(
         return false;
     }
 
-#ifdef CONFIG_KERNEL_IMAGES
-    it_kimage_cap = create_kernel_image_cap(root_cnode_cap);
-#endif
-
     /* create the cap for managing thread domains */
     create_domain_cap(root_cnode_cap);
 
@@ -396,10 +389,6 @@ static BOOT_CODE bool_t try_init_kernel(
         return false;
     }
     write_it_asid_pool(it_ap_cap, it_pd_cap);
-#ifdef CONFIG_KERNEL_IMAGES
-    assign_iki_asid(it_ap_cap, it_kimage_cap);
-    bind_iki_vspace(it_kimage_cap, it_pd_cap);
-#endif
 
 #ifdef CONFIG_KERNEL_MCS
     NODE_STATE(ksCurTime) = getCurrentTime();

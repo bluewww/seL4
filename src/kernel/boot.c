@@ -476,19 +476,6 @@ BOOT_CODE bool_t init_kernel_image(kernel_image_t *image)
 
     return true;
 }
-
-BOOT_CODE cap_t create_kernel_image_cap(cap_t root_cnode_cap)
-{
-    /* create a cap of it and write it into the root CNode */
-    if (!init_kernel_image(&ksInitialKernelImage)) {
-        return cap_null_cap_new();
-    }
-
-    cap_t cap = cap_kernel_image_cap_new((word_t)(&ksInitialKernelImage), true);
-    write_slot(SLOT_PTR(pptr_of_cap(root_cnode_cap), seL4_CapInitKernelImage), cap);
-
-    return cap;
-}
 #endif
 
 BOOT_CODE void create_idle_thread(void)
