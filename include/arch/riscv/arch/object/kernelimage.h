@@ -31,4 +31,11 @@ exception_t Arch_kernelImageCloneEntry(kernel_image_root_t *dest, kernel_image_r
  * Will also set the user address space to empty if shared with kernel.  */
 void Arch_setKernelImage(kernel_image_root_t *root);
 
+/* Get the physical address associated with the virtual address in a kernel image. */
+static inline paddr_t Arch_kernelImagePaddr(kernel_image_root_t *root, vptr_t vaddr)
+{
+    /* TODO: Implement this. */
+    return 0;
+}
+
 #endif /* __ARCH_OBJECT_KERNEL_IMAGE_H */
