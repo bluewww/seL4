@@ -291,6 +291,52 @@ static BOOT_CODE bool_t try_init_kernel(
         return false;
     }
 
+#ifdef CONFIG_KERNEL_IMAGES
+    /* XXX: create_kernel_image_cap used to be called here. */
+    if (!init_kernel_image(&ksInitialKernelImage)) {
+        printf("ERROR: initial kernel image initialisation failed\n");
+        return false;
+    }
+
+    for (int i = 0; i < ksDomScheduleLength; i++) {
+        kernel_image_t *image = &ksDomSchedule[i]->image;
+        /* XXX: adapted from createObject's seL4_KernelImageObject case */
+        /* TODO: move all this to a helper function? */
+        /* No ASID has been assigned yet */
+        image->kiASID = asidInvalid;
+        /* No memory has been mapped into the image */
+        image->kiMemoriesMapped = 0;
+        image->kiRoot = NULL;
+        /* No nodes have executed in the image */
+        for (word_t e = 0; e < ARRAY_SIZE(image->kiNodesExecuted); e++) {
+            image->kiNodesExecuted[e] = 0;
+        }
+#if 0
+        /* No IRQs have unmasked */
+        for (word_t i = 0; i < ARRAY_SIZE(image->kiIRQsUnmasked); i++) {
+            image->kiIRQsUnmasked[i] = 0;
+        }
+#endif
+        /* Cannot run with this image yet */
+        image->kiRunnable = false;
+        /* The image has not been copied */
+        image->kiCopied = false;
+
+        /* TODO: what's the constant to use here? */
+        for (int j = 0; j < XXX_MEM_REGIONS_PER_IMAGE; j++) {
+            ki_mapping_t mapping = locateNextKernelMemory(image);
+            /* TODO: where should these memory regions be? */
+            /* TODO: deal with the exception_t returned by kernelMemoryMap */
+            kernelMemoryMap(image, mapping, XXX_memory_addr[i][j]);
+        }
+        /* TODO: should we assert here that the constant number of memory
+         * regions we mapped is the exact number we needed? */
+
+        /* TODO: deal with the exception_t returned by kernelMemoryClone */
+        kernelImageClone(image, &ksInitialKernelImage);
+    }
+#endif
+
     /* create the cap for managing thread domains */
     create_domain_cap(root_cnode_cap);
 

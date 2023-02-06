@@ -30,6 +30,9 @@ typedef word_t irq_state_t;
 typedef struct dschedule {
     dom_t domain;
     word_t length;
+#ifdef CONFIG_KERNEL_IMAGES
+    kernel_image_t image;
+#endif
 } dschedule_t;
 
 enum asidSizeConstants {
