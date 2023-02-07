@@ -126,6 +126,11 @@ SECTIONS
     ki_elf_end = .;
     ki_end = .;
 
+    /* Region for kernel image clones */
+    ki_clone_mem_start = .;
+    . = . + 1M; /* TODO: determine an actual reasonable size */
+    ki_clone_mem_end = .;
+
     /* The start of the physically mapped free memory */
     ki_freemem_start = .;
 }

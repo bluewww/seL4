@@ -65,6 +65,21 @@ BOOT_CODE static bool_t arch_init_freemem(region_t ui_reg,
 
     int index = 1;
 
+#ifdef CONFIG_KERNEL_IMAGES
+    /* Reserve the region used for kernel image clones.
+     * As the relevant symbols are also created by the linker script, we use
+     * the same translation as for the kernel window, even though we define
+     * this region to be outside the kernel window (i.e. after ki_end).
+     */
+    if (index >= ARRAY_SIZE(res_reg)) {
+        printf("ERROR: no slot to add kernel clone memory to reserved regions\n");
+        return false;
+    }
+    res_reg[index].start = (pptr_t)paddr_to_pptr(kpptr_to_paddr((void *)ki_clone_mem_start));
+    res_reg[index].end = (pptr_t)paddr_to_pptr(kpptr_to_paddr((void *)ki_clone_mem_end));
+    index += 1;
+#endif
+
     /* add the dtb region, if it is not empty */
     if (dtb_p_reg.start) {
         if (index >= ARRAY_SIZE(res_reg)) {
@@ -299,6 +314,7 @@ static BOOT_CODE bool_t try_init_kernel(
     }
 
     for (int i = 0; i < ksDomScheduleLength; i++) {
+        void *memory_addr;
         kernel_image_t *image = &ksDomSchedule[i]->image;
         /* XXX: adapted from createObject's seL4_KernelImageObject case */
         /* TODO: move all this to a helper function? */
@@ -322,15 +338,52 @@ static BOOT_CODE bool_t try_init_kernel(
         /* The image has not been copied */
         image->kiCopied = false;
 
-        /* TODO: what's the constant to use here? */
-        for (int j = 0; j < XXX_MEM_REGIONS_PER_IMAGE; j++) {
-            ki_mapping_t mapping = locateNextKernelMemory(image);
-            /* TODO: where should these memory regions be? */
-            /* TODO: deal with the exception_t returned by kernelMemoryMap */
-            kernelMemoryMap(image, mapping, XXX_memory_addr[i][j]);
+        memory_addr = kpptr_to_paddr((void *)ki_clone_mem_start);
+        /* Advance to start of domain i's first "colour chunk" within the
+         * kernel clone region. */
+        /* TODO: implement function */
+        memory_addr = XXX_next_colour_chunk(i, memory_addr);
+        if (memory_addr >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
+            printf("ERROR: not enough kernel clone memory\n");
+            return false;
         }
-        /* TODO: should we assert here that the constant number of memory
-         * regions we mapped is the exact number we needed? */
+
+        for (int j = 0; j < kernelImageRequiredMemories(); j++) {
+            ki_mapping_t mapping = locateNextKernelMemory(image);
+
+            /* TODO: how big is each "colour chunk" in comparison with the
+             * typically needed sizes of memory ? */
+            /* XXX: until we have a correctly coloured chunk of needed size.
+             * NB: is a while-loop like this justifiable in unverified boot? */
+            /* TODO: function to check if needed amount of memory starting at
+             * memory_addr is wholly in one of domain i's "colour chunks". */
+            while (!XXX_in_colour_chunk(i, memory_addr,
+                        BIT(kernelImageLevelSizeBits(mapping->kimLevel)))) {
+                /* Advance to domain i's next "colour chunk". */
+                /* TODO: implement function. NB: possibly roll in the below
+                 * "within kernel clone memory region" checks into it? */
+                memory_addr = XXX_next_colour_chunk(i, memory_addr);
+
+                /* Check we're still within the kernel clone memory region */
+                if (memory_addr >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
+                    printf("ERROR: not enough kernel clone memory\n");
+                    return false;
+                }
+            }
+
+            /* Check needed memory is within kernel clone memory region */
+            if (memory_addr + BIT(kernelImageLevelSizeBits(mapping->kimLevel))
+                    >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
+                printf("ERROR: not enough kernel clone memory\n");
+                return false;
+            }
+
+            /* TODO: deal with the exception_t returned by kernelMemoryMap */
+            kernelMemoryMap(image, mapping, memory_addr);
+
+            /* TODO: increment memory_addr by the needed size of memory */
+            memory_addr += BIT(kernelImageLevelSizeBits(mapping->kimLevel);
+        }
 
         /* TODO: deal with the exception_t returned by kernelMemoryClone */
         kernelImageClone(image, &ksInitialKernelImage);
