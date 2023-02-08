@@ -332,6 +332,43 @@ static inline vptr_t kernelImageVPtr(kernel_image_root_t *root, vptr_t addr)
     return (vptr_t)(ptrFromPAddr(paddr));
 }
 
+/* Identify the start of the next page of the numbered colour. */
+static inline paddr_t locateNextPageOfColour(int i, paddr_t memory_addr)
+{
+    /* The colour bits are the first n page bits */
+    assert(i < BIT(CONFIG_NUM_COLOUR_BITS));
+
+    /* Ensure we're in the right colour.
+     * Note this is will just use one colour per domain, meaning any colours
+     * greater than the number of domains will be wasted. However, on L2 cache
+     * hardware with more colours than domains, one can avoid wasting space by
+     * configuring a smaller NUM_COLOUR_BITS to reduce the number of actual
+     * hardware colour bits used to partition the L2 cache for each domain. */
+    memory_addr &= ~MASK(PAGE_BITS + CONFIG_NUM_COLOUR_BITS);
+    memory_addr |= i << PAGE_BITS;
+
+    /* Advance to the next page of this colour. */
+    return memory_addr + BIT(PAGE_BITS + CONFIG_NUM_COLOUR_BITS);
+}
+
+/* Return whether the memory region at the given address of the given size lies
+ * wholly within the same page of the numbered colour. */
+static inline bool_t inPageOfColour(int i, paddr_t memory_addr, paddr_t size)
+{
+    assert(i < BIT(CONFIG_NUM_COLOUR_BITS));
+
+    /* region starts in a page of the numbered colour */
+    if ((memory_addr & i << PAGE_BITS) !=
+        (memory_addr & MASK(PAGE_BITS + CONFIG_NUM_COLOUR_BITS) &
+            ~MASK(PAGE_BITS))) {
+        return false;
+    }
+
+    /* region is wholly in the same page */
+    return (memory_addr & ~MASK(PAGE_BITS)) ==
+        ((memory_addr + size) & ~MASK(PAGE_BITS));
+}
+
 /* Find the level and virtual address at which the next memory should be
  * mapped */
 ki_mapping_t locateNextKernelMemory(kernel_image_t *image);

@@ -524,6 +524,13 @@ config_option(
     DEFAULT OFF
 )
 
+config_string(
+    KernelColourBits NUM_COLOUR_BITS "The number of colour bits (page bits that overlap index bits) to use for partitioning this system's L2 cache for each domain."
+    DEFAULT 2
+    UNQUOTE
+    DEPENDS "KernelImages"
+)
+
 # Builds the kernel with support for an invocation to set the TLS_BASE
 # of the currently running thread without a capability.
 config_set(KernelSetTLSBaseSelf SET_TLS_BASE_SELF ${KernelSetTLSBaseSelf})

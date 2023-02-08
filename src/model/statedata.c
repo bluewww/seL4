@@ -93,6 +93,10 @@ compile_assert(irqCNodeSize, sizeof(intStateIRQNode) >= ((INT_STATE_ARRAY_SIZE) 
 /* Currently active domain */
 dom_t ksCurDomain;
 
+#ifdef CONFIG_KERNEL_IMAGES
+kernel_image_t ksDomKernelImage[CONFIG_NUM_DOMAINS];
+#endif
+
 /* Domain timeslice remaining */
 #ifdef CONFIG_KERNEL_MCS
 ticks_t ksDomainTime;

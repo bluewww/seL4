@@ -292,16 +292,16 @@ ki_mapping_t locateNextKernelMemory(kernel_image_t *image)
     return ret;
 }
 
-exception_t kernelMemoryMap(kernel_image_t *image, ki_mapping_t *mapping, void *memory_addr)
+exception_t kernelMemoryMap(kernel_image_t *image, ki_mapping_t *mapping, void *memory_pptr)
 {
     assert(image->kiMemoriesMapped < kernelImageRequiredMemories());
 
     /* Zero out the entire region */
-    memzero(memory_addr, BIT(kernelImageLevelSizeBits(mapping->kimLevel)));
+    memzero(memory_pptr, BIT(kernelImageLevelSizeBits(mapping->kimLevel)));
 
     printf(
         "Mapping %p at %p at level %lu of %s\n",
-        (void *)addrFromPPtr(memory_addr),
+        (void *)addrFromPPtr(memory_pptr),
         (void *)mapping->kimMapAddr,
         mapping->kimLevel,
         kernel_image_region_name(mapping->kimRegion)
@@ -309,7 +309,7 @@ exception_t kernelMemoryMap(kernel_image_t *image, ki_mapping_t *mapping, void *
 
     /* Map the memory into the image and update the idle root if
      * necessary */
-    exception_t err = Arch_kernelMemoryMap(image, mapping, pptr_to_paddr(memory_addr));
+    exception_t err = Arch_kernelMemoryMap(image, mapping, pptr_to_paddr(memory_pptr));
     if (err != EXCEPTION_NONE) {
         return err;
     }

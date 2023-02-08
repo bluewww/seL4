@@ -112,6 +112,10 @@ extern const dschedule_t ksDomSchedule[];
 extern const word_t ksDomScheduleLength;
 extern word_t ksDomScheduleIdx;
 extern dom_t ksCurDomain;
+#ifdef CONFIG_KERNEL_IMAGES
+extern kernel_image_t ksDomKernelImage[];
+#endif
+
 #ifdef CONFIG_KERNEL_MCS
 extern ticks_t ksDomainTime;
 #else
