@@ -132,5 +132,6 @@ SECTIONS
     ki_clone_mem_end = .;
 
     /* The start of the physically mapped free memory */
+    . = ALIGN(4K);
     ki_freemem_start = .;
 }

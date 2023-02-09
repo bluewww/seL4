@@ -20,7 +20,12 @@
  * +1 for device tree binary
  * +1 for user image.
  */
+#ifdef CONFIG_KERNEL_IMAGES
+/* +1 for the kernel image clone region. */
+#define NUM_RESERVED_REGIONS 4
+#else
 #define NUM_RESERVED_REGIONS 3
+#endif
 
 /* The maximum number of reserved regions is:
  * +1 for each free memory region (MAX_NUM_FREEMEM_REG)

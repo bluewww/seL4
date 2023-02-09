@@ -35,9 +35,22 @@ static inline paddr_t CONST addrFromKPPtr(const void *pptr)
     return (paddr_t)pptr - KERNEL_ELF_BASE_OFFSET;
 }
 
+#ifdef CONFIG_KERNEL_IMAGES
+/* Function for addresses in the kernel image clone memory region. */
+static inline paddr_t CONST addrFromKCMPtr(const void *pptr)
+{
+    assert((paddr_t)pptr >= KERNEL_CLONE_MEM_BASE);
+    assert((paddr_t)pptr <= KERNEL_CLONE_MEM_TOP);
+    return (paddr_t)pptr - KERNEL_ELF_BASE_OFFSET;
+}
+#endif
+
 #define paddr_to_pptr(x)   ptrFromPAddr(x)
 #define pptr_to_paddr(x)   addrFromPPtr(x)
 #define kpptr_to_paddr(x)  addrFromKPPtr(x)
+#ifdef CONFIG_KERNEL_IMAGES
+#define kcmptr_to_paddr(x)  addrFromKCMPtr(x)
+#endif
 
 static inline region_t CONST paddr_to_pptr_reg(const p_region_t p_reg)
 {
