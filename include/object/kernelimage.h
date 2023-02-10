@@ -356,6 +356,7 @@ static inline paddr_t locateNextPageOfColour(int i, paddr_t memory_addr)
 static inline bool_t inPageOfColour(int i, paddr_t memory_addr, paddr_t size)
 {
     assert(i < BIT(CONFIG_NUM_COLOUR_BITS));
+    assert(size > 0);
 
     /* region starts in a page of the numbered colour */
     if ((memory_addr & i << PAGE_BITS) !=
@@ -366,7 +367,7 @@ static inline bool_t inPageOfColour(int i, paddr_t memory_addr, paddr_t size)
 
     /* region is wholly in the same page */
     return (memory_addr & ~MASK(PAGE_BITS)) ==
-        ((memory_addr + size) & ~MASK(PAGE_BITS));
+        ((memory_addr + size - 1) & ~MASK(PAGE_BITS));
 }
 
 /* Find the level and virtual address at which the next memory should be

@@ -129,7 +129,7 @@ SECTIONS
     ._clone_mem . (NOLOAD): AT(ADDR(._clone_mem) - KERNEL_OFFSET)
     {
         ki_clone_mem_start = .;
-        . = . + 32M; /* TODO: determine an actual reasonable size */
+        . = . + 1M; /* TODO: determine an actual reasonable size */
         ki_clone_mem_end = .;
         *(._clone_mem)
     }

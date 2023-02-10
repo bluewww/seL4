@@ -325,11 +325,13 @@ static BOOT_CODE bool_t try_init_kernel(
         image->kiCopied = false;
 
         memory_addr = kpptr_to_paddr((void *)ki_clone_mem_start);
+        printf("ki_clone_mem_start is %lx\n", memory_addr);
         /* Advance to start of domain i's next page in the kernel clone region
          * (skip the current page, even if it belongs to domain i). */
         memory_addr = locateNextPageOfColour(i, memory_addr);
+        printf("initial page of colour %d is at %lx\n", i, memory_addr);
         if (memory_addr >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
-            printf("ERROR: not enough kernel clone memory\n");
+            printf("ERROR: not enough kernel clone memory. region start %lx exceeds %lx\n", memory_addr, kpptr_to_paddr((void *)ki_clone_mem_end));
             return false;
         }
 
@@ -340,12 +342,13 @@ static BOOT_CODE bool_t try_init_kernel(
              * wholly in one of domain i's pages. */
             while (!inPageOfColour(i, memory_addr,
                         BIT(kernelImageLevelSizeBits(mapping.kimLevel)))) {
+                printf("page %lx not of colour %d or not big enough for size %lx\n", memory_addr, i, BIT(kernelImageLevelSizeBits(mapping.kimLevel)));
                 /* Advance to domain i's next page. */
                 memory_addr = locateNextPageOfColour(i, memory_addr);
-
+                printf("now at colour %d page %lx\n", i, memory_addr);
                 /* Check we're still within the kernel clone memory region */
                 if (memory_addr >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
-                    printf("ERROR: not enough kernel clone memory\n");
+                    printf("ERROR: not enough kernel clone memory. region start %lx exceeds %lx\n", memory_addr, kpptr_to_paddr((void *)ki_clone_mem_end));
                     return false;
                 }
             }
@@ -353,10 +356,13 @@ static BOOT_CODE bool_t try_init_kernel(
             /* Check needed memory is within kernel clone memory region */
             if (memory_addr + BIT(kernelImageLevelSizeBits(mapping.kimLevel))
                     >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
-                printf("ERROR: not enough kernel clone memory\n");
+                printf("ERROR: not enough kernel clone memory. needed region end %lx exceeds %lx\n",
+                        memory_addr + BIT(kernelImageLevelSizeBits(mapping.kimLevel)),
+                        kpptr_to_paddr((void *)ki_clone_mem_end));
                 return false;
             }
 
+            printf("mapping %d for colour %d at page %lx\n", j, i, memory_addr);
             err = kernelMemoryMap(image, &mapping, paddr_to_pptr(memory_addr));
             if (err != EXCEPTION_NONE) {
                 printf("ERROR: kernelMemoryMap failed with exception %lu\n", err);
