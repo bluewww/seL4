@@ -124,14 +124,19 @@ SECTIONS
     . = ALIGN(4K);
     ki_shared_end = .;
     ki_elf_end = .;
-    ki_end = .;
 
     /* Region for kernel image clones */
-    ki_clone_mem_start = .;
-    . = . + 1M; /* TODO: determine an actual reasonable size */
-    ki_clone_mem_end = .;
+    ._clone_mem . (NOLOAD): AT(ADDR(._clone_mem) - KERNEL_OFFSET)
+    {
+        ki_clone_mem_start = .;
+        . = . + 32M; /* TODO: determine an actual reasonable size */
+        ki_clone_mem_end = .;
+        *(._clone_mem)
+    }
+
+    . = ALIGN(4K);
+    ki_end = .;
 
     /* The start of the physically mapped free memory */
-    . = ALIGN(4K);
     ki_freemem_start = .;
 }

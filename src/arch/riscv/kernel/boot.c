@@ -68,21 +68,6 @@ BOOT_CODE static bool_t arch_init_freemem(region_t ui_reg,
 
     int index = 1;
 
-#ifdef CONFIG_KERNEL_IMAGES
-    /* Reserve the region used for kernel image clones.
-     * As the relevant symbols are also created by the linker script, we use
-     * a similar translation as for the kernel window, even though we define
-     * this region to be outside the kernel window (i.e. after ki_end).
-     */
-    if (index >= ARRAY_SIZE(res_reg)) {
-        printf("ERROR: no slot to add kernel clone memory to reserved regions\n");
-        return false;
-    }
-    res_reg[index].start = (pptr_t)paddr_to_pptr(kcmptr_to_paddr((void *)ki_clone_mem_start));
-    res_reg[index].end = (pptr_t)paddr_to_pptr(kcmptr_to_paddr((void *)ki_clone_mem_end));
-    index += 1;
-#endif
-
     /* add the dtb region, if it is not empty */
     if (dtb_p_reg.start) {
         if (index >= ARRAY_SIZE(res_reg)) {
@@ -339,11 +324,11 @@ static BOOT_CODE bool_t try_init_kernel(
         /* The image has not been copied */
         image->kiCopied = false;
 
-        memory_addr = kcmptr_to_paddr((void *)ki_clone_mem_start);
+        memory_addr = kpptr_to_paddr((void *)ki_clone_mem_start);
         /* Advance to start of domain i's next page in the kernel clone region
          * (skip the current page, even if it belongs to domain i). */
         memory_addr = locateNextPageOfColour(i, memory_addr);
-        if (memory_addr >= kcmptr_to_paddr((void *)ki_clone_mem_end)) {
+        if (memory_addr >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
             printf("ERROR: not enough kernel clone memory\n");
             return false;
         }
@@ -359,7 +344,7 @@ static BOOT_CODE bool_t try_init_kernel(
                 memory_addr = locateNextPageOfColour(i, memory_addr);
 
                 /* Check we're still within the kernel clone memory region */
-                if (memory_addr >= kcmptr_to_paddr((void *)ki_clone_mem_end)) {
+                if (memory_addr >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
                     printf("ERROR: not enough kernel clone memory\n");
                     return false;
                 }
@@ -367,7 +352,7 @@ static BOOT_CODE bool_t try_init_kernel(
 
             /* Check needed memory is within kernel clone memory region */
             if (memory_addr + BIT(kernelImageLevelSizeBits(mapping.kimLevel))
-                    >= kcmptr_to_paddr((void *)ki_clone_mem_end)) {
+                    >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
                 printf("ERROR: not enough kernel clone memory\n");
                 return false;
             }
