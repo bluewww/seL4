@@ -343,7 +343,19 @@ static void switchSchedContext(void)
 static void scheduleChooseNewThread(void)
 {
     if (ksDomainTime == 0) {
+#ifdef CONFIG_KERNEL_IMAGES
+        exception_t status;
+#endif
         nextDomain();
+#ifdef CONFIG_KERNEL_IMAGES
+        /* For now this assumes a round-robin ksDomSchedule where the domain's
+         * position in the schedule identifies its kernel image. If we want to
+         * support more complex domain schedules than that, we will need to
+         * develop a proper way to relate the ksDomScheduleIdx (probably via
+         * the actual domain identifier dom_t) to the domain's kernel image. */
+        status = setKernelImage(&ksDomKernelImage[ksDomScheduleIdx]);
+        assert(status == EXCEPTION_NONE);
+#endif
     }
     chooseThread();
 }

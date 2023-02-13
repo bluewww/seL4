@@ -16,6 +16,10 @@
 
 /* The top level asid mapping table */
 asid_pool_t *riscvKSASIDTable[BIT(asidHighBits)];
+#ifdef CONFIG_KERNEL_IMAGES
+/* The reserved ASID pool for kernel images */
+asid_pool_t riscvKSKIASIDPool;
+#endif
 
 /* Kernel Page Tables */
 pte_t kernel_root_pageTable[BIT(PT_INDEX_BITS)] ALIGN_BSS(BIT(seL4_PageTableBits));

@@ -449,6 +449,9 @@ BOOT_CODE bool_t init_sched_control(cap_t root_cnode_cap, word_t num_nodes)
 #endif
 
 #ifdef CONFIG_KERNEL_IMAGES
+/* XXX: this should only ever be used for the creation of the kernel clones.
+ * need to find a way to ensure this. should we destroy it, make sure it's not
+ * a global, or otherwise make it unrunnable after kernel clone creation? */
 BOOT_CODE bool_t init_kernel_image(kernel_image_t *image)
 {
     /* Set the initial kernel image */

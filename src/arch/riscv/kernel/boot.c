@@ -301,11 +301,17 @@ static BOOT_CODE bool_t try_init_kernel(
         return false;
     }
 
+    /* initialise the reserved ASID pool for kernel images */
+    riscvKSASIDTable[KIASIDPool] = &riscvKSKIASIDPool;
+
     for (int i = 0; i < ksDomScheduleLength; i++) {
         paddr_t memory_addr;
         exception_t err;
         kernel_image_t *image = &ksDomKernelImage[i];
+
         /* XXX: adapted from createObject's seL4_KernelImageObject case */
+        /* No ASID has been assigned yet */
+        image->kiASID = asidInvalid;
         /* No memory has been mapped into the image */
         image->kiMemoriesMapped = 0;
         image->kiRoot = NULL;
@@ -372,6 +378,12 @@ static BOOT_CODE bool_t try_init_kernel(
             /* Increment memory_addr by the needed size of memory */
             memory_addr += BIT(kernelImageLevelSizeBits(mapping.kimLevel));
         }
+        /* Note: The kernel image's kiRoot should by now have been set by the
+         * kimLevel 0 invocation of kernelMemoryMap. */
+
+        /* initialise reserved ASID and its pool entry for this kernel image */
+        image->kiASID = (KIASIDPool << asidLowBits) + i;
+        riscvKSASIDTable[KIASIDPool]->array[i] = image->kiRoot;
 
         err = kernelImageClone(image, &ksInitialKernelImage);
         if (err != EXCEPTION_NONE) {

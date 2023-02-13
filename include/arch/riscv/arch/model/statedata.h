@@ -23,6 +23,10 @@ NODE_STATE_DECLARE(word_t, ipiReschedulePending);
 NODE_STATE_END(archNodeState);
 
 extern asid_pool_t *riscvKSASIDTable[BIT(asidHighBits)];
+#ifdef CONFIG_KERNEL_IMAGES
+/* The reserved ASID pool for kernel images */
+extern asid_pool_t riscvKSKIASIDPool;
+#endif /* CONFIG_KERNEL_IMAGES */
 
 /* Kernel Page Tables */
 extern pte_t kernel_root_pageTable[BIT(PT_INDEX_BITS)] VISIBLE;

@@ -302,8 +302,9 @@ static inline exception_t setKernelImage(kernel_image_t *image)
 
     if (likely(image->kiRunnable)) {
         if (unlikely(image != NODE_STATE(ksCurKernelImage))) {
-            Arch_setKernelImage(image->kiRoot);
+            Arch_setKernelImage(image->kiRoot, image->kiASID);
             NODE_STATE(ksCurKernelImage) = image;
+            /* XXX: why is this needed? can we remove it? */
             NODE_STATE(ksKernelImageChanged) = true;
         }
         return EXCEPTION_NONE;
@@ -316,7 +317,13 @@ static inline exception_t setKernelImage(kernel_image_t *image)
  * and the initial kernel image. */
 static inline void switchToIdleKernelImage(void)
 {
-    Arch_setKernelImage(ksGlobalKernelImage);
+#if 0
+    /* XXX: ideally we would actually switch it to the current domain's
+     * top-level kernel image address space, as follows: */
+    exception_t status = setKernelImage(&ksDomKernelImage[ksDomScheduleIdx]);
+    assert(status == EXCEPTION_NONE);
+#endif
+    Arch_setKernelImage(ksGlobalKernelImage, 0);
 }
 
 /* Get the base address of the kernel stack for the current node */

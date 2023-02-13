@@ -29,7 +29,14 @@ typedef struct asid_pool asid_pool_t;
 #define ASID_POOL_PTR(r)    ((asid_pool_t*)r)
 #define ASID_POOL_REF(p)    ((word_t)p)
 #define ASID_BITS           (asidHighBits + asidLowBits)
+#ifdef CONFIG_KERNEL_IMAGES
+/* These are the *allocatable* ASID pools. */
+#define nASIDPools          (BIT(asidHighBits) - 1)
+/* The highest, unallocatable, ASID pool we reserve for the kernel images. */
+#define KIASIDPool          MASK(asidHighBits)
+#else
 #define nASIDPools          BIT(asidHighBits)
+#endif
 #define ASID_LOW(a)         (a & MASK(asidLowBits))
 #define ASID_HIGH(a)        ((a >> asidLowBits) & MASK(asidHighBits))
 
@@ -72,6 +79,9 @@ typedef pte_t pde_t;
 
 #ifdef CONFIG_KERNEL_IMAGES
 struct kernel_image {
+    /* The virtual ASID used to identify the image. */
+    asid_t kiASID;
+
     /* The number of KernelMemory objects already mapped into the image. */
     word_t kiMemoriesMapped;
 

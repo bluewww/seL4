@@ -143,10 +143,13 @@ exception_t Arch_kernelImageCloneEntry(kernel_image_root_t *dest, kernel_image_r
     return EXCEPTION_NONE;
 }
 
-void Arch_setKernelImage(kernel_image_root_t *root)
+void Arch_setKernelImage(kernel_image_root_t *root, asid_t asid)
 {
     /* Copy the stack into the given addres space */
     /* Set the kernel address space to the given root */
     /* If vspace shared with user, set user to empty vspace */
+
+    setVSpaceRoot(addrFromPPtr(root), asid);
+
     return;
 }

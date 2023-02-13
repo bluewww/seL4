@@ -29,7 +29,7 @@ exception_t Arch_kernelImageCloneEntry(kernel_image_root_t *dest, kernel_image_r
 /* Update the kernel image virtual address space with the given root.
  *
  * Will also set the user address space to empty if shared with kernel.  */
-void Arch_setKernelImage(kernel_image_root_t *root);
+void Arch_setKernelImage(kernel_image_root_t *root, asid_t asid);
 
 /* Get the physical address associated with the virtual address in a kernel image. */
 static inline paddr_t Arch_kernelImagePaddr(kernel_image_root_t *root, vptr_t vaddr)
