@@ -19,6 +19,9 @@ void map_kernel_window(void);
 void map_kernel_frame(paddr_t paddr, pptr_t vaddr, vm_rights_t vm_rights);
 void activate_kernel_vspace(void);
 void write_it_asid_pool(cap_t it_ap_cap, cap_t it_lvl1pt_cap);
+#ifdef CONFIG_KERNEL_IMAGES
+void bind_iki_vspace(kernel_image_t *image, cap_t it_vspace_cap);
+#endif
 
 
 /* ==================== BOOT CODE FINISHES HERE ==================== */

@@ -312,6 +312,14 @@ BOOT_CODE void write_it_asid_pool(cap_t it_ap_cap, cap_t it_lvl1pt_cap)
     riscvKSASIDTable[IT_ASID >> asidLowBits] = ap;
 }
 
+#ifdef CONFIG_KERNEL_IMAGES
+BOOT_CODE void bind_iki_vspace(kernel_image_t *image, cap_t it_vspace_cap)
+{
+    asid_t vspace_asid = cap_page_table_cap_get_capPTMappedASID(it_vspace_cap);
+    kernelImageBindVSpace(image, vspace_asid);
+}
+#endif
+
 /* ==================== BOOT CODE FINISHES HERE ==================== */
 
 static findVSpaceForASID_ret_t findVSpaceForASID(asid_t asid)

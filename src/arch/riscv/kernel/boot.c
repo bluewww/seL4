@@ -491,6 +491,9 @@ static BOOT_CODE bool_t try_init_kernel(
         return false;
     }
     write_it_asid_pool(it_ap_cap, it_pd_cap);
+#ifdef CONFIG_KERNEL_IMAGES
+    bind_iki_vspace(&ksInitialKernelImage, it_pd_cap);
+#endif
 
 #ifdef CONFIG_KERNEL_MCS
     NODE_STATE(ksCurTime) = getCurrentTime();

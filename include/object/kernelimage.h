@@ -395,4 +395,7 @@ exception_t kernelMemoryMap(kernel_image_t *image, ki_mapping_t *mapping, void *
  */
 exception_t kernelImageClone(kernel_image_t *dest, kernel_image_t *src);
 
+/* Bind a kernel image to a given vspace */
+exception_t kernelImageBindVSpace(kernel_image_t *image, asid_t vspace_asid);
+
 #endif /* __OBJECT_KERNEL_IMAGE_H */

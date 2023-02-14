@@ -366,3 +366,37 @@ exception_t kernelImageClone(kernel_image_t *dest, kernel_image_t *src)
 
     return EXCEPTION_NONE;
 }
+
+exception_t kernelImageBindVSpace(kernel_image_t *image, asid_t vspace_asid)
+{
+    /* Copy the root-level mappings shared between the kernel and the
+     * user virtual address space. */
+
+    findVSpaceForASID_ret_t find_ret = findVSpaceForASID(vspace_asid);
+    if (unlikely(find_ret.status != EXCEPTION_NONE)) {
+        printf("kernelImageBindVSpace: ASID lookup failed with exception %lu", find_ret.status);
+        return find_ret.status;
+    }
+    vspace_root_t *vspace_root = find_ret.vspace_root;
+
+    /* If the kernel user share mappings, the root objects should have the
+     * same size and type */
+    assert(seL4_VSpaceBits == kernelImageLevelSizeBits(0));
+
+    /* Find the number of bits needed to isolate the root index */
+    word_t shift_bits = kernelImageUntranslatedBits(1);
+    word_t index_bits = kernelImageLevelIndexBits(0);
+
+    /* We use a base index and a number of entries here so that the
+     * condition has an upper bound that won't be missed by means of
+     * integer overflow.  The KI_WINDOW_END refers to the last entry, so
+     * the range must be inclusive of it */
+    word_t base_index = (KI_WINDOW_START >> shift_bits) & MASK(index_bits);
+    word_t num_entries = (((KI_WINDOW_END - KI_WINDOW_START) >> shift_bits) & MASK(index_bits)) + 1;
+
+    for (word_t entry = 0; entry < num_entries; entry += 1) {
+        vspace_root[base_index + entry] = image->kiRoot[base_index + entry];
+    }
+
+    return EXCEPTION_NONE;
+}
