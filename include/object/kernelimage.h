@@ -317,15 +317,17 @@ static inline exception_t setKernelImage(kernel_image_t *image)
  * and the initial kernel image. */
 static inline void switchToIdleKernelImage(void)
 {
-#if 0
+#if 1
     /* XXX: ideally we would actually switch it to the current domain's
      * top-level kernel image address space, as follows: */
     exception_t status = setKernelImage(&ksDomKernelImage[ksDomScheduleIdx]);
     assert(status == EXCEPTION_NONE);
-#endif
+#else
     Arch_setKernelImage(ksGlobalKernelImage, 0);
+#endif
 }
 
+#if 0 /* XXX: this isn't being called yet */
 /* Get the base address of the kernel stack for the current node */
 static inline vptr_t kernelStackBase(void)
 {
@@ -338,6 +340,7 @@ static inline vptr_t kernelImageVPtr(kernel_image_root_t *root, vptr_t addr)
     paddr_t paddr = Arch_kernelImagePaddr(root, addr);
     return (vptr_t)(ptrFromPAddr(paddr));
 }
+#endif
 
 /* Identify the start of the next page of the numbered colour. */
 static inline paddr_t locateNextPageOfColour(int i, paddr_t memory_addr)

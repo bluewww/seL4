@@ -395,8 +395,12 @@ exception_t kernelImageBindVSpace(kernel_image_t *image, asid_t vspace_asid)
     word_t num_entries = (((KI_WINDOW_END - KI_WINDOW_START) >> shift_bits) & MASK(index_bits)) + 1;
 
     for (word_t entry = 0; entry < num_entries; entry += 1) {
+        /* XXX: printf("copying entry %lu\n", base_index + entry); */
         vspace_root[base_index + entry] = image->kiRoot[base_index + entry];
     }
+
+    printf("kernelImageBindVSpace: Completed for image %p, asid %lu.\nThe asid points to vspace_root %p, which we think should be the same as %p.\n",
+        image, vspace_asid, vspace_root, riscvKSASIDTable[0]->array[IT_ASID]);
 
     return EXCEPTION_NONE;
 }

@@ -591,7 +591,7 @@ void setVMRoot(tcb_t *tcb)
     threadRoot = TCB_PTR_CTE_PTR(tcb, tcbVTable)->cap;
 
     if (cap_get_capType(threadRoot) != cap_page_table_cap) {
-#if 0 /* def CONFIG_KERNEL_IMAGES */
+#if 1 /* def CONFIG_KERNEL_IMAGES */
         switchToIdleKernelImage();
 #else
         setVSpaceRoot(kpptr_to_paddr(&kernel_root_pageTable), 0);
@@ -604,7 +604,7 @@ void setVMRoot(tcb_t *tcb)
     asid = cap_page_table_cap_get_capPTMappedASID(threadRoot);
     find_ret = findVSpaceForASID(asid);
     if (unlikely(find_ret.status != EXCEPTION_NONE || find_ret.vspace_root != lvl1pt)) {
-#if 0 /* def CONFIG_KERNEL_IMAGES */
+#if 1 /* def CONFIG_KERNEL_IMAGES */
         switchToIdleKernelImage();
 #else
         setVSpaceRoot(kpptr_to_paddr(&kernel_root_pageTable), 0);

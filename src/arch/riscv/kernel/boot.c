@@ -300,6 +300,7 @@ static BOOT_CODE bool_t try_init_kernel(
         printf("ERROR: initial kernel image initialisation failed\n");
         return false;
     }
+    printf("init_kernel_image done for %p\n", &ksInitialKernelImage);
 
     /* initialise the reserved ASID pool for kernel images */
     riscvKSASIDTable[KIASIDPool] = &riscvKSKIASIDPool;
@@ -390,6 +391,7 @@ static BOOT_CODE bool_t try_init_kernel(
             printf("ERROR: kernelImageClone failed with exception %lu\n", err);
             return false;
         }
+        printf("kernelImageClone done for colour %d, image %p\n", i, image);
     }
 #endif
 
@@ -492,7 +494,9 @@ static BOOT_CODE bool_t try_init_kernel(
     }
     write_it_asid_pool(it_ap_cap, it_pd_cap);
 #ifdef CONFIG_KERNEL_IMAGES
-    bind_iki_vspace(&ksInitialKernelImage, it_pd_cap);
+    /* bind initial vspace to top-level kernel image of initial domain, i.e.
+     * the domain that create_initial_thread assigns to the initial thread */
+    bind_iki_vspace(&ksDomKernelImage[ksDomScheduleIdx], it_pd_cap);
 #endif
 
 #ifdef CONFIG_KERNEL_MCS
