@@ -49,12 +49,6 @@ static inline word_t CONST RISCVGetReadFromVMRights(vm_rights_t vm_rights)
     return vm_rights != VMKernelOnly;
 }
 
-static inline bool_t isPTEPageTable(pte_t *pte)
-{
-    return pte_ptr_get_valid(pte) &&
-           !(pte_ptr_get_read(pte) || pte_ptr_get_write(pte) || pte_ptr_get_execute(pte));
-}
-
 /** Helper function meant only to be used for mapping the kernel
  * window.
  *
@@ -388,11 +382,6 @@ word_t *PURE lookupIPCBuffer(bool_t isReceiver, tcb_t *thread)
     } else {
         return NULL;
     }
-}
-
-static inline pte_t *getPPtrFromHWPTE(pte_t *pte)
-{
-    return PTE_PTR(ptrFromPAddr(pte_ptr_get_ppn(pte) << seL4_PageTableBits));
 }
 
 lookupPTSlot_ret_t lookupPTSlot(pte_t *lvl1pt, vptr_t vptr)

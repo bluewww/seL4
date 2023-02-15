@@ -302,7 +302,9 @@ static inline exception_t setKernelImage(kernel_image_t *image)
 
     if (likely(image->kiRunnable)) {
         if (unlikely(image != NODE_STATE(ksCurKernelImage))) {
+            printf("Calling Arch_setKernelImage for root %p, asid %lu\n", image->kiRoot, image->kiASID);
             Arch_setKernelImage(image->kiRoot, image->kiASID);
+            printf("Returned from Arch_setKernelImage for root %p, asid %lu\n", image->kiRoot, image->kiASID);
             NODE_STATE(ksCurKernelImage) = image;
             /* XXX: why is this needed? can we remove it? */
             NODE_STATE(ksKernelImageChanged) = true;
@@ -327,7 +329,6 @@ static inline void switchToIdleKernelImage(void)
 #endif
 }
 
-#if 0 /* XXX: this isn't being called yet */
 /* Get the base address of the kernel stack for the current node */
 static inline vptr_t kernelStackBase(void)
 {
@@ -340,7 +341,6 @@ static inline vptr_t kernelImageVPtr(kernel_image_root_t *root, vptr_t addr)
     paddr_t paddr = Arch_kernelImagePaddr(root, addr);
     return (vptr_t)(ptrFromPAddr(paddr));
 }
-#endif
 
 /* Identify the start of the next page of the numbered colour. */
 static inline paddr_t locateNextPageOfColour(int i, paddr_t memory_addr)

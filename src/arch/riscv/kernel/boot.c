@@ -497,6 +497,9 @@ static BOOT_CODE bool_t try_init_kernel(
     /* bind initial vspace to top-level kernel image of initial domain, i.e.
      * the domain that create_initial_thread assigns to the initial thread */
     bind_iki_vspace(&ksDomKernelImage[ksDomScheduleIdx], it_pd_cap);
+
+    /* XXX: test */
+    switchToIdleKernelImage();
 #endif
 
 #ifdef CONFIG_KERNEL_MCS

@@ -66,3 +66,13 @@ void setVMRoot(tcb_t *tcb);
 void Arch_userStackTrace(tcb_t *tptr);
 #endif
 
+static inline bool_t isPTEPageTable(pte_t *pte)
+{
+    return pte_ptr_get_valid(pte) &&
+           !(pte_ptr_get_read(pte) || pte_ptr_get_write(pte) || pte_ptr_get_execute(pte));
+}
+
+static inline pte_t *getPPtrFromHWPTE(pte_t *pte)
+{
+    return PTE_PTR(ptrFromPAddr(pte_ptr_get_ppn(pte) << seL4_PageTableBits));
+}

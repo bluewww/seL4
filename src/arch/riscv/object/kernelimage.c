@@ -149,7 +149,14 @@ void Arch_setKernelImage(kernel_image_root_t *root, asid_t asid)
     /* Set the kernel address space to the given root */
     /* If vspace shared with user, set user to empty vspace */
 
+    vptr_t stack_base = kernelStackBase();
+    vptr_t image_base = kernelImageVPtr(root, stack_base);
+
+    printf("Stack top after switch %p -> %p\n", (void *)stack_base, (void *)image_base);
+
+    printf("Calling setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(root), root, asid);
+
     setVSpaceRoot(addrFromPPtr(root), asid);
 
-    return;
+    printf("Returned from setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(root), root, asid);
 }

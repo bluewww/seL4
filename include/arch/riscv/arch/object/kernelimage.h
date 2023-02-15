@@ -34,8 +34,15 @@ void Arch_setKernelImage(kernel_image_root_t *root, asid_t asid);
 /* Get the physical address associated with the virtual address in a kernel image. */
 static inline paddr_t Arch_kernelImagePaddr(kernel_image_root_t *root, vptr_t vaddr)
 {
-    /* TODO: Implement this. */
-    return 0;
+    lookupPTSlot_ret_t ret = lookupPTSlot(root, vaddr);
+    assert(pte_ptr_get_valid(ret.ptSlot) && !isPTEPageTable(ret.ptSlot));
+
+    pptr_t pptr1 = (pptr_t)(getPPtrFromHWPTE(ret.ptSlot));
+    pptr_t pptr2 = (pptr1 + (vaddr & MASK(ret.ptBitsLeft)));
+    paddr_t paddr = pptr_to_paddr((void *) pptr2);
+    printf("0x%lx: 0x%lx -> 0x%lx (0x%lx)\n", vaddr, pptr1, pptr2, paddr);
+
+    return paddr;
 }
 
 #endif /* __ARCH_OBJECT_KERNEL_IMAGE_H */
