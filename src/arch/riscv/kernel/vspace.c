@@ -1156,21 +1156,12 @@ exception_t performPageInvocationUnmap(cap_t cap, cte_t *ctSlot)
 }
 
 #ifdef CONFIG_PRINTING
-void Arch_userStackTrace(tcb_t *tptr)
-{
-    cap_t threadRoot = TCB_PTR_CTE_PTR(tptr, tcbVTable)->cap;
-    if (!isValidVTableRoot(threadRoot)) {
-        printf("Invalid vspace\n");
-        return;
-    }
-
-    word_t sp = getRegister(tptr, SP);
+void Arch_stackTrace(word_t sp, pte_t *vspace_root) {
     if (!IS_ALIGNED(sp, seL4_WordSizeBits)) {
         printf("SP %p not aligned", (void *) sp);
         return;
     }
 
-    pte_t *vspace_root = PTE_PTR(pptr_of_cap(threadRoot));
     for (int i = 0; i < CONFIG_USER_STACK_TRACE_LENGTH; i++) {
         word_t address = sp + (i * sizeof(word_t));
         lookupPTSlot_ret_t ret = lookupPTSlot(vspace_root, address);
@@ -1182,6 +1173,17 @@ void Arch_userStackTrace(tcb_t *tptr)
             printf("0x%lx: INVALID\n", (long) address);
         }
     }
+}
+
+void Arch_userStackTrace(tcb_t *tptr)
+{
+    cap_t threadRoot = TCB_PTR_CTE_PTR(tptr, tcbVTable)->cap;
+    if (!isValidVTableRoot(threadRoot)) {
+        printf("Invalid vspace\n");
+        return;
+    }
+
+    Arch_stackTrace(getRegister(tptr, SP), PTE_PTR(pptr_of_cap(threadRoot)));
 }
 #endif
 

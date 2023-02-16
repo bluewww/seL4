@@ -152,11 +152,21 @@ void Arch_setKernelImage(kernel_image_root_t *root, asid_t asid)
     vptr_t stack_base = kernelStackBase();
     vptr_t image_base = kernelImageVPtr(root, stack_base);
 
-    printf("Stack top after switch %p -> %p\n", (void *)stack_base, (void *)image_base);
+    printf("Stack base %p -> image base %p\n", (void *)stack_base, (void *)image_base);
+
+    printf("Stack base %p at root %p:\n", (void *)stack_base, ksCurKernelImage->kiRoot);
+    Arch_stackTrace(stack_base, ksCurKernelImage->kiRoot);
+    printf("Stack base %p at root %p:\n", (void *)stack_base, root);
+    Arch_stackTrace(stack_base, root);
+    printf("Image base %p at root %p:\n", (void *)image_base, ksCurKernelImage->kiRoot);
+    Arch_stackTrace(image_base, ksCurKernelImage->kiRoot);
 
     printf("Calling setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(root), root, asid);
 
     setVSpaceRoot(addrFromPPtr(root), asid);
 
     printf("Returned from setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(root), root, asid);
+
+    printf("Stack base %p at root %p:\n", (void *)stack_base, root);
+    Arch_stackTrace(stack_base, root);
 }

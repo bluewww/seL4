@@ -63,6 +63,7 @@ exception_t performPageInvocationUnmap(cap_t cap, cte_t *ctSlot);
 void setVMRoot(tcb_t *tcb);
 
 #ifdef CONFIG_PRINTING
+void Arch_stackTrace(word_t sp, pte_t *vspace_root);
 void Arch_userStackTrace(tcb_t *tptr);
 #endif
 
