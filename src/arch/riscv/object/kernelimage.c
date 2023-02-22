@@ -150,7 +150,14 @@ void Arch_setKernelImage(kernel_image_t *image)
     /* If vspace shared with user, set user to empty vspace */
 
     vptr_t stack_p = kernelStackBase();
-    vptr_t image_p = kernelImageVPtr(image->kiRoot, stack_p);
+    /* XXX: This unbelievably dodgy hack appears to work. It's because the
+     * stack base virtual address is at the beginning of the KIRegionShared,
+     * which is mapped differently to where the rest of the stack actually
+     * resides! Doing a sneaky decrement of this pointer puts us just before
+     * the end of the KIRegionPrivate, which for each kernel image is instead
+     * mapped to where its stack is actually meant to reside.
+     * Need to fix this properly. */
+    vptr_t image_p = kernelImageVPtr(image->kiRoot, stack_p - 1) + 1;
 
     if (image->kiStackInitted) {
         printf("Calling setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(image->kiRoot), image->kiRoot, image->kiASID);
