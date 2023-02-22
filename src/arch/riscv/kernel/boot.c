@@ -330,6 +330,8 @@ static BOOT_CODE bool_t try_init_kernel(
         image->kiRunnable = false;
         /* The image has not been copied */
         image->kiCopied = false;
+        /* The stack has not been properly initialised */
+        image->kiStackInitted = false;
 
         memory_addr = kpptr_to_paddr((void *)ki_clone_mem_start);
         printf("ki_clone_mem_start is %lx\n", memory_addr);

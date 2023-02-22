@@ -302,9 +302,9 @@ static inline exception_t setKernelImage(kernel_image_t *image)
 
     if (likely(image->kiRunnable)) {
         if (unlikely(image != NODE_STATE(ksCurKernelImage))) {
-            printf("Calling Arch_setKernelImage for root %p, asid %lu\n", image->kiRoot, image->kiASID);
-            Arch_setKernelImage(image->kiRoot, image->kiASID);
-            printf("Returned from Arch_setKernelImage for root %p, asid %lu\n", image->kiRoot, image->kiASID);
+            printf("Calling Arch_setKernelImage for image %p (root %p, asid %lu)\n", image, image->kiRoot, image->kiASID);
+            Arch_setKernelImage(image);
+            printf("Returned from Arch_setKernelImage for image %p (root %p, asid %lu)\n", image, image->kiRoot, image->kiASID);
             NODE_STATE(ksCurKernelImage) = image;
             /* XXX: why is this needed? can we remove it? */
             NODE_STATE(ksKernelImageChanged) = true;

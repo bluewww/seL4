@@ -109,6 +109,10 @@ struct kernel_image {
 
     /* Whether the kernel data has been copied. */
     bool_t kiCopied;
+
+    /* Whether the kernel stack has been initialised properly for this image.
+     * This should take place immediately prior to the initial switch to it. */
+    bool_t kiStackInitted;
 };
 typedef struct kernel_image kernel_image_t;
 
