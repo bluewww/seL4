@@ -149,31 +149,29 @@ void Arch_setKernelImage(kernel_image_root_t *root, asid_t asid)
     /* Set the kernel address space to the given root */
     /* If vspace shared with user, set user to empty vspace */
 
-    vptr_t stack_base = kernelStackBase();
-    vptr_t image_base = kernelImageVPtr(root, stack_base);
     vptr_t stack_p = kernelStackBase();
-    vptr_t image_p = kernelImageVPtr(root, stack_base);
+    vptr_t image_p = kernelImageVPtr(root, stack_p);
 
-    printf("Stack base %p -> image base %p\n", (void *)stack_base, (void *)image_base);
+    printf("Dump from %p at current root %p:\n", (void *)(stack_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t)), ksCurKernelImage->kiRoot);
+    Arch_stackTrace(stack_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t), ksCurKernelImage->kiRoot);
 
-    printf("Stack base %p at root %p:\n", (void *)stack_base, ksCurKernelImage->kiRoot);
-    Arch_stackTrace(stack_base, ksCurKernelImage->kiRoot);
-    printf("Stack base %p at root %p:\n", (void *)stack_base, root);
-    Arch_stackTrace(stack_base, root);
-    printf("Image base %p at root %p:\n", (void *)image_base, ksCurKernelImage->kiRoot);
-    Arch_stackTrace(image_base, ksCurKernelImage->kiRoot);
+    printf("Dump from %p at new root %p:\n", (void *)(stack_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t)), root);
+    Arch_stackTrace(stack_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t), root);
 
-    printf("Copying stack %p -> %p\n", (void *)stack_base, (void *)image_base);
+    printf("Dump from %p at current root %p:\n", (void *)(image_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t)), ksCurKernelImage->kiRoot);
+    Arch_stackTrace(image_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t), ksCurKernelImage->kiRoot);
+
+    printf("Copying stack from base %p -> %p\n", (void *)stack_p, (void *)image_p);
     asm volatile(
         /* Copy stack */
         "1: \n"
         // while (stack_p != sp) {
         "beq %[stack_p], sp, 1f\n"
-        "li t1, 4\n"
+        "li t0, 4\n"
         // stack_p -= 4;
-        "subw %[stack_p], %[stack_p], t1\n"
+        "subw %[stack_p], %[stack_p], t0\n"
         // image_p -= 4;
-        "subw %[image_p], %[image_p], t1\n"
+        "subw %[image_p], %[image_p], t0\n"
         // *image_p = *stack_p;
         "lw t0, (%[stack_p])\n"
         "sw t0, (%[image_p])\n"
@@ -181,18 +179,20 @@ void Arch_setKernelImage(kernel_image_root_t *root, asid_t asid)
         "j 1b\n"
         "1: \n"
         "fence\n"
-        : [image_p] "+r" (image_p)
-        : [stack_p] "r" (stack_p)
-        : "t0", "t1", "sp", "memory"
+        : [image_p] "+r" (image_p), [stack_p] "+r" (stack_p)
+        : "[image_p]" (image_p), "[stack_p]" (stack_p)
+        : "t0", "memory"
     );
     printf("Stack top after switch %p -> %p\n", (void *)stack_p, (void *)image_p);
 
-    printf("Stack base %p at root %p:\n", (void *)stack_base, ksCurKernelImage->kiRoot);
-    Arch_stackTrace(stack_base, ksCurKernelImage->kiRoot);
-    printf("Stack base %p at root %p:\n", (void *)stack_base, root);
-    Arch_stackTrace(stack_base, root);
-    printf("Image base %p at root %p:\n", (void *)image_base, ksCurKernelImage->kiRoot);
-    Arch_stackTrace(image_base, ksCurKernelImage->kiRoot);
+    printf("Stack from top %p at current root %p:\n", (void *)stack_p, ksCurKernelImage->kiRoot);
+    Arch_stackTrace(stack_p, ksCurKernelImage->kiRoot);
+
+    printf("Stack from top %p at new root %p:\n", (void *)stack_p, root);
+    Arch_stackTrace(stack_p, root);
+
+    printf("Stack from top %p at current root %p:\n", (void *)image_p, ksCurKernelImage->kiRoot);
+    Arch_stackTrace(image_p, ksCurKernelImage->kiRoot);
 
     printf("Calling setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(root), root, asid);
 
@@ -200,6 +200,6 @@ void Arch_setKernelImage(kernel_image_root_t *root, asid_t asid)
 
     printf("Returned from setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(root), root, asid);
 
-    printf("Stack base %p at root %p:\n", (void *)stack_base, root);
-    Arch_stackTrace(stack_base, root);
+    printf("Stack from top %p at new root %p:\n", (void *)stack_p, root);
+    Arch_stackTrace(stack_p, root);
 }
