@@ -149,6 +149,15 @@ void Arch_setKernelImage(kernel_image_t *image)
     /* Set the kernel address space to the given root */
     /* If vspace shared with user, set user to empty vspace */
 
+    vptr_t ret_p, alr;
+    asm volatile(
+        "mv %[ret_p], ra\n"
+        "mv %[alr], t0\n"
+        : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
+    printf("Pre-switch ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
+    printf("setKernelImage a is %p\n", setKernelImage);
+    printf("Arch_setKernelImage a is %p\n", Arch_setKernelImage);
+
     vptr_t stack_p = kernelStackBase();
     /* XXX: This unbelievably dodgy hack appears to work. It's because the
      * stack base virtual address is at the beginning of the KIRegionShared,
@@ -159,6 +168,12 @@ void Arch_setKernelImage(kernel_image_t *image)
      * Need to fix this properly. */
     vptr_t image_p = kernelImageVPtr(image->kiRoot, stack_p - 1) + 1;
 
+    asm volatile(
+        "mv %[ret_p], ra\n"
+        "mv %[alr], t0\n"
+        : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
+    printf("0: ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
+
     if (image->kiStackInitted) {
         printf("Calling setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(image->kiRoot), image->kiRoot, image->kiASID);
         setVSpaceRoot(addrFromPPtr(image->kiRoot), image->kiASID);
@@ -166,11 +181,23 @@ void Arch_setKernelImage(kernel_image_t *image)
         return;
     }
 
+    asm volatile(
+        "mv %[ret_p], ra\n"
+        "mv %[alr], t0\n"
+        : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
+    printf("1: ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
+
     printf("Precopy dump from %p at current root %p:\n", (void *)(stack_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t)), ksCurKernelImage->kiRoot);
     Arch_stackTrace(stack_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t), ksCurKernelImage->kiRoot);
 
     printf("Precopy dump from %p at current root %p:\n", (void *)(image_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t)), ksCurKernelImage->kiRoot);
     Arch_stackTrace(image_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t), ksCurKernelImage->kiRoot);
+
+    asm volatile(
+        "mv %[ret_p], ra\n"
+        "mv %[alr], t0\n"
+        : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
+    printf("2: ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
 
     printf("Copying stack from base %p -> %p, switching vspace root to %lx (from %p), asid %lu.\n", (void *)stack_p, (void *)image_p, addrFromPPtr(image->kiRoot), image->kiRoot, image->kiASID);
 
@@ -179,30 +206,49 @@ void Arch_setKernelImage(kernel_image_t *image)
         "1: \n"
         // while (stack_p != sp) {
         "beq %[stack_p], sp, 1f\n"
-        "li t0, 8\n"
+        "li t1, 8\n"
         // stack_p -= 8;
-        "sub %[stack_p], %[stack_p], t0\n"
+        "sub %[stack_p], %[stack_p], t1\n"
         // image_p -= 8:
-        "sub %[image_p], %[image_p], t0\n"
+        "sub %[image_p], %[image_p], t1\n"
         // *image_p = *stack_p;
-        "ld t0, (%[stack_p])\n"
-        "sd t0, (%[image_p])\n"
+        "ld t1, (%[stack_p])\n"
+        "sd t1, (%[image_p])\n"
         // }
         "j 1b\n"
         "1: \n"
         "fence\n"
         : [stack_p] "+r" (stack_p), [image_p] "+r" (image_p)
         : "[stack_p]" (stack_p), "[image_p]" (image_p)
-        : "t0", "memory"
+        : "t1", "memory"
     );
     setVSpaceRoot(addrFromPPtr(image->kiRoot), image->kiASID);
     printf("Stack top after switch %p -> %p\n", (void *)stack_p, (void *)image_p);
 
     image->kiStackInitted = true;
 
+    asm volatile(
+        "mv %[ret_p], ra\n"
+        "mv %[alr], t0\n"
+        : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
+    printf("3: ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
+
     printf("Postcopy stack from top %p at new root %p:\n", (void *)stack_p, image->kiRoot);
     Arch_stackTrace(stack_p, image->kiRoot);
 
+    asm volatile(
+        "mv %[ret_p], ra\n"
+        "mv %[alr], t0\n"
+        : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
+    printf("4: ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
     printf("Postcopy stack from top %p at new root %p:\n", (void *)image_p, image->kiRoot);
     Arch_stackTrace(image_p, image->kiRoot);
+
+    printf("Arch_setKernelImage a is %p\n", Arch_setKernelImage);
+    printf("setKernelImage a is %p\n", setKernelImage);
+    asm volatile(
+        "mv %[ret_p], ra\n"
+        "mv %[alr], t0\n"
+        : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
+    printf("Post-switch ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
 }
