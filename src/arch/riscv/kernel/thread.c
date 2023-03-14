@@ -42,6 +42,8 @@ void Arch_switchToIdleThread(void)
 {
     tcb_t *tcb = NODE_STATE(ksIdleThread);
 
+    printf("Arch_switchToIdleThread calling setVMRoot\n");
+
     /* Force the idle thread to run on kernel page table */
     setVMRoot(tcb);
 }

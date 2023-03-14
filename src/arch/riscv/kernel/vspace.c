@@ -577,10 +577,15 @@ void setVMRoot(tcb_t *tcb)
     pte_t *lvl1pt;
     findVSpaceForASID_ret_t  find_ret;
 
+    printf("Now in setVMRoot\n");
+
     threadRoot = TCB_PTR_CTE_PTR(tcb, tcbVTable)->cap;
+
+    printf("setVMRoot: retrieved threadRoot\n");
 
     if (cap_get_capType(threadRoot) != cap_page_table_cap) {
 #if 1 /* def CONFIG_KERNEL_IMAGES */
+        printf("setVMRoot calling switchToIdleKernelImage (case 1)\n");
         switchToIdleKernelImage();
 #else
         setVSpaceRoot(kpptr_to_paddr(&kernel_root_pageTable), 0);
@@ -590,10 +595,13 @@ void setVMRoot(tcb_t *tcb)
 
     lvl1pt = PTE_PTR(cap_page_table_cap_get_capPTBasePtr(threadRoot));
 
+    printf("setVMRoot: retrieved lvl1pt\n");
+
     asid = cap_page_table_cap_get_capPTMappedASID(threadRoot);
     find_ret = findVSpaceForASID(asid);
     if (unlikely(find_ret.status != EXCEPTION_NONE || find_ret.vspace_root != lvl1pt)) {
 #if 1 /* def CONFIG_KERNEL_IMAGES */
+        printf("setVMRoot calling switchToIdleKernelImage (case 2)\n");
         switchToIdleKernelImage();
 #else
         setVSpaceRoot(kpptr_to_paddr(&kernel_root_pageTable), 0);
@@ -601,6 +609,7 @@ void setVMRoot(tcb_t *tcb)
         return;
     }
 
+    printf("setVMRoot: found vspace for ASID %lu; calling setVSpaceRoot\n", asid);
     setVSpaceRoot(addrFromPPtr(lvl1pt), asid);
 }
 
