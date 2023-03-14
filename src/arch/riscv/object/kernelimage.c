@@ -149,12 +149,14 @@ void Arch_setKernelImage(kernel_image_t *image)
     /* Set the kernel address space to the given root */
     /* If vspace shared with user, set user to empty vspace */
 
+    paddr_t paddr;
     vptr_t ret_p, alr;
     asm volatile(
-        "ld %[ret_p], 88(sp)\n"
+        "ld %[ret_p], 120(sp)\n"
         "mv %[alr], t0\n"
         : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
-    printf("Pre-switch ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
+    paddr = Arch_kernelImagePaddr(ksCurKernelImage->kiRoot, ret_p);
+    printf("Pre-switch ra is %p (%lx), t0 is %p\n", (void *)ret_p, paddr, (void *)alr);
     printf("setKernelImage a is %p\n", setKernelImage);
     printf("Arch_setKernelImage a is %p\n", Arch_setKernelImage);
 
@@ -169,7 +171,7 @@ void Arch_setKernelImage(kernel_image_t *image)
     vptr_t image_p = kernelImageVPtr(image->kiRoot, stack_p - 1) + 1;
 
     asm volatile(
-        "ld %[ret_p], 88(sp)\n"
+        "ld %[ret_p], 120(sp)\n"
         "mv %[alr], t0\n"
         : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
     printf("0: ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
@@ -182,7 +184,7 @@ void Arch_setKernelImage(kernel_image_t *image)
     }
 
     asm volatile(
-        "ld %[ret_p], 88(sp)\n"
+        "ld %[ret_p], 120(sp)\n"
         "mv %[alr], t0\n"
         : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
     printf("1: ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
@@ -194,7 +196,7 @@ void Arch_setKernelImage(kernel_image_t *image)
     Arch_stackTrace(image_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t), ksCurKernelImage->kiRoot);
 
     asm volatile(
-        "ld %[ret_p], 88(sp)\n"
+        "ld %[ret_p], 120(sp)\n"
         "mv %[alr], t0\n"
         : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
     printf("2: ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
@@ -228,7 +230,7 @@ void Arch_setKernelImage(kernel_image_t *image)
     image->kiStackInitted = true;
 
     asm volatile(
-        "ld %[ret_p], 88(sp)\n"
+        "ld %[ret_p], 120(sp)\n"
         "mv %[alr], t0\n"
         : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
     printf("3: ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
@@ -237,7 +239,7 @@ void Arch_setKernelImage(kernel_image_t *image)
     Arch_stackTrace(stack_p, image->kiRoot);
 
     asm volatile(
-        "ld %[ret_p], 88(sp)\n"
+        "ld %[ret_p], 120(sp)\n"
         "mv %[alr], t0\n"
         : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
     printf("4: ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
@@ -247,8 +249,11 @@ void Arch_setKernelImage(kernel_image_t *image)
     printf("Arch_setKernelImage a is %p\n", Arch_setKernelImage);
     printf("setKernelImage a is %p\n", setKernelImage);
     asm volatile(
-        "ld %[ret_p], 88(sp)\n"
+        "ld %[ret_p], 120(sp)\n"
         "mv %[alr], t0\n"
         : [ret_p] "=r" (ret_p), [alr] "=r" (alr));
+
     printf("Post-switch ra is %p, t0 is %p\n", (void *)ret_p, (void *)alr);
+    paddr = Arch_kernelImagePaddr(image->kiRoot, ret_p);
+    printf("Post-switch ra (paddr) is %lx\n", paddr);
 }
