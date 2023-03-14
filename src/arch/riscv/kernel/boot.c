@@ -379,7 +379,9 @@ static BOOT_CODE bool_t try_init_kernel(
             }
 
             /* Increment memory_addr by the needed size of memory */
+            printf("incrementing: %lx...\n", memory_addr);
             memory_addr += BIT(kernelImageLevelSizeBits(mapping.kimLevel));
+            printf("... to paddr: %lx\n", memory_addr);
         }
         /* Note: The kernel image's kiRoot should by now have been set by the
          * kimLevel 0 invocation of kernelMemoryMap. */

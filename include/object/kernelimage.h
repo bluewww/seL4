@@ -354,8 +354,14 @@ static inline paddr_t locateNextPageOfColour(int i, paddr_t memory_addr)
      * hardware with more colours than domains, one can avoid wasting space by
      * configuring a smaller NUM_COLOUR_BITS to reduce the number of actual
      * hardware colour bits used to partition the L2 cache for each domain. */
+    printf("%lx\n", memory_addr);
+    /* avoid skipping page if at beginning of next group of (2^n + 1) pages */
+    memory_addr -= 1;
+    printf("%lx\n", memory_addr);
     memory_addr &= ~MASK(PAGE_BITS + CONFIG_NUM_COLOUR_BITS);
+    printf("%lx\n", memory_addr);
     memory_addr |= i << PAGE_BITS;
+    printf("%lx\n", memory_addr);
 
     /* Advance to the next page of this colour. */
     return memory_addr + BIT(PAGE_BITS + CONFIG_NUM_COLOUR_BITS);
@@ -369,7 +375,7 @@ static inline bool_t inPageOfColour(int i, paddr_t memory_addr, paddr_t size)
     assert(size > 0);
 
     /* region starts in a page of the numbered colour */
-    if ((memory_addr & i << PAGE_BITS) !=
+    if ((i << PAGE_BITS) !=
         (memory_addr & MASK(PAGE_BITS + CONFIG_NUM_COLOUR_BITS) &
             ~MASK(PAGE_BITS))) {
         return false;
