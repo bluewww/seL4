@@ -577,7 +577,7 @@ void setVMRoot(tcb_t *tcb)
     pte_t *lvl1pt;
     findVSpaceForASID_ret_t  find_ret;
 
-    printf("Now in setVMRoot\n");
+    printf("Now in setVMRoot. Dereferencing tcbVTable in tcb %p\n", tcb);
 
     threadRoot = TCB_PTR_CTE_PTR(tcb, tcbVTable)->cap;
 

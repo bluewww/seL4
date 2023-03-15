@@ -304,99 +304,6 @@ static BOOT_CODE bool_t try_init_kernel(
 
     /* initialise the reserved ASID pool for kernel images */
     riscvKSASIDTable[KIASIDPool] = &riscvKSKIASIDPool;
-
-    for (int i = 0; i < ksDomScheduleLength; i++) {
-        paddr_t memory_addr;
-        exception_t err;
-        kernel_image_t *image = &ksDomKernelImage[i];
-
-        /* XXX: adapted from createObject's seL4_KernelImageObject case */
-        /* No ASID has been assigned yet */
-        image->kiASID = asidInvalid;
-        /* No memory has been mapped into the image */
-        image->kiMemoriesMapped = 0;
-        image->kiRoot = NULL;
-        /* No nodes have executed in the image */
-        for (word_t e = 0; e < ARRAY_SIZE(image->kiNodesExecuted); e++) {
-            image->kiNodesExecuted[e] = 0;
-        }
-#if 0
-        /* No IRQs have unmasked */
-        for (word_t i = 0; i < ARRAY_SIZE(image->kiIRQsUnmasked); i++) {
-            image->kiIRQsUnmasked[i] = 0;
-        }
-#endif
-        /* Cannot run with this image yet */
-        image->kiRunnable = false;
-        /* The image has not been copied */
-        image->kiCopied = false;
-        /* The stack has not been properly initialised */
-        image->kiStackInitted = false;
-
-        memory_addr = kpptr_to_paddr((void *)ki_clone_mem_start);
-        printf("ki_clone_mem_start is %lx\n", memory_addr);
-        /* Advance to start of domain i's next page in the kernel clone region
-         * (skip the current page, even if it belongs to domain i). */
-        memory_addr = locateNextPageOfColour(i, memory_addr);
-        printf("initial page of colour %d is at %lx\n", i, memory_addr);
-        if (memory_addr >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
-            printf("ERROR: not enough kernel clone memory. region start %lx exceeds %lx\n", memory_addr, kpptr_to_paddr((void *)ki_clone_mem_end));
-            return false;
-        }
-
-        for (int j = 0; j < kernelImageRequiredMemories(); j++) {
-            ki_mapping_t mapping = locateNextKernelMemory(image);
-
-            /* Check if needed amount of memory starting at memory_addr is
-             * wholly in one of domain i's pages. */
-            while (!inPageOfColour(i, memory_addr,
-                        BIT(kernelImageLevelSizeBits(mapping.kimLevel)))) {
-                printf("page %lx not of colour %d or not big enough for size %lx\n", memory_addr, i, BIT(kernelImageLevelSizeBits(mapping.kimLevel)));
-                /* Advance to domain i's next page. */
-                memory_addr = locateNextPageOfColour(i, memory_addr);
-                printf("now at colour %d page %lx\n", i, memory_addr);
-                /* Check we're still within the kernel clone memory region */
-                if (memory_addr >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
-                    printf("ERROR: not enough kernel clone memory. region start %lx exceeds %lx\n", memory_addr, kpptr_to_paddr((void *)ki_clone_mem_end));
-                    return false;
-                }
-            }
-
-            /* Check needed memory is within kernel clone memory region */
-            if (memory_addr + BIT(kernelImageLevelSizeBits(mapping.kimLevel))
-                    >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
-                printf("ERROR: not enough kernel clone memory. needed region end %lx exceeds %lx\n",
-                        memory_addr + BIT(kernelImageLevelSizeBits(mapping.kimLevel)),
-                        kpptr_to_paddr((void *)ki_clone_mem_end));
-                return false;
-            }
-
-            printf("mapping %d for colour %d at page %lx\n", j, i, memory_addr);
-            err = kernelMemoryMap(image, &mapping, paddr_to_pptr(memory_addr));
-            if (err != EXCEPTION_NONE) {
-                printf("ERROR: kernelMemoryMap failed with exception %lu\n", err);
-                return false;
-            }
-
-            /* Increment memory_addr by the needed size of memory */
-            printf("incrementing: %lx...\n", memory_addr);
-            memory_addr += BIT(kernelImageLevelSizeBits(mapping.kimLevel));
-            printf("... to paddr: %lx\n", memory_addr);
-        }
-        /* Note: The kernel image's kiRoot should by now have been set by the
-         * kimLevel 0 invocation of kernelMemoryMap. */
-
-        /* initialise reserved ASID and its pool entry for this kernel image */
-        image->kiASID = (KIASIDPool << asidLowBits) + i;
-        riscvKSASIDTable[KIASIDPool]->array[i] = image->kiRoot;
-
-        err = kernelImageClone(image, &ksInitialKernelImage);
-        if (err != EXCEPTION_NONE) {
-            printf("ERROR: kernelImageClone failed with exception %lu\n", err);
-            return false;
-        }
-        printf("kernelImageClone done for colour %d, image %p\n", i, image);
-    }
 #endif
 
     /* create the cap for managing thread domains */
@@ -510,6 +417,105 @@ static BOOT_CODE bool_t try_init_kernel(
 
     /* create the idle thread */
     create_idle_thread();
+
+    printf("created idle thread. ksIdleThread is now %p\n", ksIdleThread);
+
+#ifdef CONFIG_KERNEL_IMAGES
+    /* the kernel clone creation has to happen after the creation of the idle
+     * thread to ensure the idle thread is copied to the kernel clones */
+    for (int i = 0; i < ksDomScheduleLength; i++) {
+        paddr_t memory_addr;
+        exception_t err;
+        kernel_image_t *image = &ksDomKernelImage[i];
+
+        /* XXX: adapted from createObject's seL4_KernelImageObject case */
+        /* No ASID has been assigned yet */
+        image->kiASID = asidInvalid;
+        /* No memory has been mapped into the image */
+        image->kiMemoriesMapped = 0;
+        image->kiRoot = NULL;
+        /* No nodes have executed in the image */
+        for (word_t e = 0; e < ARRAY_SIZE(image->kiNodesExecuted); e++) {
+            image->kiNodesExecuted[e] = 0;
+        }
+#if 0
+        /* No IRQs have unmasked */
+        for (word_t i = 0; i < ARRAY_SIZE(image->kiIRQsUnmasked); i++) {
+            image->kiIRQsUnmasked[i] = 0;
+        }
+#endif
+        /* Cannot run with this image yet */
+        image->kiRunnable = false;
+        /* The image has not been copied */
+        image->kiCopied = false;
+        /* The stack has not been properly initialised */
+        image->kiStackInitted = false;
+
+        memory_addr = kpptr_to_paddr((void *)ki_clone_mem_start);
+        printf("ki_clone_mem_start is %lx\n", memory_addr);
+        /* Advance to start of domain i's next page in the kernel clone region
+         * (skip the current page, even if it belongs to domain i). */
+        memory_addr = locateNextPageOfColour(i, memory_addr);
+        printf("initial page of colour %d is at %lx\n", i, memory_addr);
+        if (memory_addr >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
+            printf("ERROR: not enough kernel clone memory. region start %lx exceeds %lx\n", memory_addr, kpptr_to_paddr((void *)ki_clone_mem_end));
+            return false;
+        }
+
+        for (int j = 0; j < kernelImageRequiredMemories(); j++) {
+            ki_mapping_t mapping = locateNextKernelMemory(image);
+
+            /* Check if needed amount of memory starting at memory_addr is
+             * wholly in one of domain i's pages. */
+            while (!inPageOfColour(i, memory_addr,
+                        BIT(kernelImageLevelSizeBits(mapping.kimLevel)))) {
+                printf("page %lx not of colour %d or not big enough for size %lx\n", memory_addr, i, BIT(kernelImageLevelSizeBits(mapping.kimLevel)));
+                /* Advance to domain i's next page. */
+                memory_addr = locateNextPageOfColour(i, memory_addr);
+                printf("now at colour %d page %lx\n", i, memory_addr);
+                /* Check we're still within the kernel clone memory region */
+                if (memory_addr >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
+                    printf("ERROR: not enough kernel clone memory. region start %lx exceeds %lx\n", memory_addr, kpptr_to_paddr((void *)ki_clone_mem_end));
+                    return false;
+                }
+            }
+
+            /* Check needed memory is within kernel clone memory region */
+            if (memory_addr + BIT(kernelImageLevelSizeBits(mapping.kimLevel))
+                    >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
+                printf("ERROR: not enough kernel clone memory. needed region end %lx exceeds %lx\n",
+                        memory_addr + BIT(kernelImageLevelSizeBits(mapping.kimLevel)),
+                        kpptr_to_paddr((void *)ki_clone_mem_end));
+                return false;
+            }
+
+            printf("mapping %d for colour %d at page %lx\n", j, i, memory_addr);
+            err = kernelMemoryMap(image, &mapping, paddr_to_pptr(memory_addr));
+            if (err != EXCEPTION_NONE) {
+                printf("ERROR: kernelMemoryMap failed with exception %lu\n", err);
+                return false;
+            }
+
+            /* Increment memory_addr by the needed size of memory */
+            printf("incrementing: %lx...\n", memory_addr);
+            memory_addr += BIT(kernelImageLevelSizeBits(mapping.kimLevel));
+            printf("... to paddr: %lx\n", memory_addr);
+        }
+        /* Note: The kernel image's kiRoot should by now have been set by the
+         * kimLevel 0 invocation of kernelMemoryMap. */
+
+        /* initialise reserved ASID and its pool entry for this kernel image */
+        image->kiASID = (KIASIDPool << asidLowBits) + i;
+        riscvKSASIDTable[KIASIDPool]->array[i] = image->kiRoot;
+
+        err = kernelImageClone(image, &ksInitialKernelImage);
+        if (err != EXCEPTION_NONE) {
+            printf("ERROR: kernelImageClone failed with exception %lu\n", err);
+            return false;
+        }
+        printf("kernelImageClone done for colour %d, image %p\n", i, image);
+    }
+#endif
 
     /* create the initial thread */
     tcb_t *initial = create_initial_thread(
