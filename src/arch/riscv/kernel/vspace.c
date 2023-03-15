@@ -587,6 +587,7 @@ void setVMRoot(tcb_t *tcb)
 #if 1 /* def CONFIG_KERNEL_IMAGES */
         printf("setVMRoot calling switchToIdleKernelImage (case 1)\n");
         switchToIdleKernelImage();
+        printf("setVMRoot: returning from switchToIdleKernelImage (case 1)\n");
 #else
         setVSpaceRoot(kpptr_to_paddr(&kernel_root_pageTable), 0);
 #endif
@@ -603,6 +604,7 @@ void setVMRoot(tcb_t *tcb)
 #if 1 /* def CONFIG_KERNEL_IMAGES */
         printf("setVMRoot calling switchToIdleKernelImage (case 2)\n");
         switchToIdleKernelImage();
+        printf("setVMRoot: returning from switchToIdleKernelImage (case 2)\n");
 #else
         setVSpaceRoot(kpptr_to_paddr(&kernel_root_pageTable), 0);
 #endif
@@ -611,6 +613,7 @@ void setVMRoot(tcb_t *tcb)
 
     printf("setVMRoot: found vspace for ASID %lu; calling setVSpaceRoot\n", asid);
     setVSpaceRoot(addrFromPPtr(lvl1pt), asid);
+    printf("setVMRoot: returning from setVSpaceRoot for ASID %lu\n", asid);
 }
 
 bool_t CONST isValidVTableRoot(cap_t cap)

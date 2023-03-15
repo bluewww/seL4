@@ -177,6 +177,8 @@ void Arch_setKernelImage(kernel_image_t *image)
     Arch_stackTrace(image_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t), ksCurKernelImage->kiRoot);
 #endif
 
+    printf("ksDomScheduleIdx: %lu\n", ksDomScheduleIdx);
+
     printf("Copying stack from base %p -> %p, switching vspace root to %lx (from %p), asid %lu.\n", (void *)stack_p, (void *)image_p, addrFromPPtr(image->kiRoot), image->kiRoot, image->kiASID);
 
     asm volatile(
@@ -203,6 +205,7 @@ void Arch_setKernelImage(kernel_image_t *image)
     setVSpaceRoot(addrFromPPtr(image->kiRoot), image->kiASID);
     printf("Stack top after switch %p -> %p\n", (void *)stack_p, (void *)image_p);
 
+    printf("ksDomScheduleIdx: %lu\n", ksDomScheduleIdx);
     image->kiStackInitted = true;
 
 #if 0

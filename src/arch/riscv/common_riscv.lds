@@ -74,7 +74,6 @@ SECTIONS
         __global_pointer$ = . + 0x800;
         *(.srodata*)
         *(.sdata*)
-        *(.sbss)
     }
 
     .rodata . : AT(ADDR(.rodata) - KERNEL_OFFSET)
@@ -110,6 +109,7 @@ SECTIONS
         ki_shared_start = .;
 
         *(.bss)
+        *(.sbss)
         *(COMMON) /* fallback in case '-fno-common' is not used */
 
         /* 4k breakpoint stack */

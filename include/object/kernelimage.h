@@ -319,10 +319,13 @@ static inline exception_t setKernelImage(kernel_image_t *image)
  * and the initial kernel image. */
 static inline void switchToIdleKernelImage(void)
 {
-#if 0
+#if 1
+    exception_t status;
     /* XXX: ideally we would actually switch it to the current domain's
      * top-level kernel image address space, as follows: */
-    exception_t status = setKernelImage(&ksDomKernelImage[ksDomScheduleIdx]);
+    printf("switchToIdleKernelImage: Calling setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
+    status = setKernelImage(&ksDomKernelImage[ksDomScheduleIdx]);
+    printf("switchToIdleKernelImage: Returned from setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
     assert(status == EXCEPTION_NONE);
 #else
     Arch_setKernelImage(&ksInitialKernelImage);
