@@ -405,6 +405,11 @@ static BOOT_CODE bool_t try_init_kernel(
     }
     write_it_asid_pool(it_ap_cap, it_pd_cap);
 #ifdef CONFIG_KERNEL_IMAGES
+#if 0
+    /* bind initial vspace to top-level kernel image of initial domain, i.e.
+     * the domain that create_initial_thread assigns to the initial thread */
+    bind_iki_vspace(&ksDomKernelImage[ksDomScheduleIdx], it_pd_cap);
+#endif
     /* bind initial vspace to initial (global) kernel image, which should only
      * be used by the system initialiser or other helpers that shouldn't
      * continue to run after system initialisation time */

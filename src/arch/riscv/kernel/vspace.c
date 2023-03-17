@@ -611,6 +611,17 @@ void setVMRoot(tcb_t *tcb)
         return;
     }
 
+    if (unlikely(asid == IT_ASID)) {
+        exception_t status;
+#if 0
+        /* always force a copy of the current stack into the initial thread's            * kernel image when switching to it (?) */
+        ksInitialKernelImage.kiRoot.kiStackInitted = false;
+#endif
+        printf("setVMRoot: Calling setKernelImage for initial kernel image %p (root %p, asid %lu)\n", &ksInitialKernelImage, ksInitialKernelImage.kiRoot, ksInitialKernelImage.kiASID);
+        status = setKernelImage(&ksInitialKernelImage);
+        printf("setVMRoot: Returned from setKernelImage for initial kernel image %p (root %p, asid %lu)\n", &ksInitialKernelImage, ksInitialKernelImage.kiRoot, ksInitialKernelImage.kiASID);
+        assert(status == EXCEPTION_NONE);
+    }
     printf("setVMRoot: found vspace for ASID %lu; calling setVSpaceRoot\n", asid);
     setVSpaceRoot(addrFromPPtr(lvl1pt), asid);
     printf("setVMRoot: returning from setVSpaceRoot for ASID %lu\n", asid);
