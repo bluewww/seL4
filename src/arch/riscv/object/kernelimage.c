@@ -149,7 +149,7 @@ void Arch_setKernelImage(kernel_image_t *image)
     /* Set the kernel address space to the given root */
     /* If vspace shared with user, set user to empty vspace */
 
-    printf("    Arch_setKernelImage: BEGIN for image %p (from ksCurKernelImage %p)\n", image, ksCurKernelImage);
+    printf("    Arch_setKernelImage: BEGIN for image %p (from ksCurKernelImage %p)\n", image, NODE_STATE(ksCurKernelImage));
 
     if (image->kiStackInitted) {
         /* The global kimage used for ASID 0 is in the ELF mapping */
@@ -158,7 +158,7 @@ void Arch_setKernelImage(kernel_image_t *image)
         printf("    Arch_setKernelImage: Calling setVSpaceRoot for %lx (from %p), asid %lu.\n", kiRootPAddr, image->kiRoot, image->kiASID);
         setVSpaceRoot(kiRootPAddr, image->kiASID);
         printf("    Arch_setKernelImage: Returned from setVSpaceRoot for %lx (from %p), asid %lu.\n", kiRootPAddr, image->kiRoot, image->kiASID);
-        printf("    Arch_setKernelImage: END without stack copy for image %p (from ksCurKernelImage %p)\n", image, ksCurKernelImage);
+        printf("    Arch_setKernelImage: END without stack copy for image %p (from ksCurKernelImage %p)\n", image, NODE_STATE(ksCurKernelImage));
         return;
     }
 
@@ -222,5 +222,5 @@ void Arch_setKernelImage(kernel_image_t *image)
     Arch_stackTrace(image_p, image->kiRoot);
 #endif
 
-    printf("    Arch_setKernelImage: END with stack copy for image %p (from ksCurKernelImage %p)\n", image, ksCurKernelImage);
+    printf("    Arch_setKernelImage: END with stack copy for image %p (from ksCurKernelImage %p)\n", image, NODE_STATE(ksCurKernelImage));
 }
