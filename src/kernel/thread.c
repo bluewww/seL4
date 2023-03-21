@@ -346,7 +346,16 @@ static void scheduleChooseNewThread(void)
 #ifdef CONFIG_KERNEL_IMAGES
         exception_t status;
 #endif
+#ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
+        /* TODO: determine if we really do need, for verification reasons,
+         * to delay the masking off of the old domain's irqs until after the
+         * change of ksCurDomain by nextDomain; can we just mask them here? */
+        word_t old_dom_idx = ksDomScheduleIdx;
+#endif
         nextDomain();
+#ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
+        maskInterrupts(true, ksDomSchedule[old_dom_idx].irqs);
+#endif
 #ifdef CONFIG_KERNEL_IMAGES
         /* For now this assumes a round-robin ksDomSchedule where the domain's
          * position in the schedule identifies its kernel image. If we want to
@@ -357,6 +366,12 @@ static void scheduleChooseNewThread(void)
         status = setKernelImage(&ksDomKernelImage[ksDomScheduleIdx]);
         printf("scheduleChooseNewThread: Returned from setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
         assert(status == EXCEPTION_NONE);
+#endif
+#ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
+        maskInterrupts(false, ksDomSchedule[ksDomScheduleIdx].irqs);
+#endif
+#ifdef CONFIG_DOMAIN_MICROARCH_FLUSH
+        arch_domainswitch_flush();
 #endif
     }
     chooseThread();

@@ -130,6 +130,20 @@ static inline void hwASIDFlush(asid_t asid)
 
 #endif /* end of !ENABLE_SMP_SUPPORT */
 
+#if defined(CONFIG_PLAT_ARIANE)
+static inline void fencet(void)
+{
+    /* Opcode to invoke fence.t for experimental version of Ariane/CVA6
+     * specified by Nils Wistoff via private communication. */
+    asm volatile (".word 0xfffff00b");
+}
+#else
+static inline void fencet(void)
+{
+    /* do nothing */
+}
+#endif
+
 word_t PURE getRestartPC(tcb_t *thread);
 void setNextPC(tcb_t *thread, word_t v);
 
@@ -278,5 +292,18 @@ static inline exception_t Arch_setTLSRegister(word_t tls_base)
     setRegister(NODE_STATE(ksCurThread), TLS_BASE, tls_base);
     return EXCEPTION_NONE;
 }
+
+#ifdef CONFIG_DOMAIN_MICROARCH_FLUSH
+static inline void arch_domainswitch_flush(void)
+{
+    /* Determinisation of off-core state for shared kernel data addresses. */
+    /* TODO: Enumerate shared kernel data addresses and implement this. */
+
+    /* On-core state flush and time pad. */
+    /* TODO: Configure cspad register so fence.t will wait until that number
+     * of cycles after the arrival of the timer interrupt. */
+    fencet();
+}
+#endif
 
 #endif // __ASSEMBLER__

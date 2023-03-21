@@ -305,6 +305,23 @@ if(SEL4_CONFIG_DEFAULT_ADVANCED)
     mark_as_advanced(KernelDomainSchedule)
 endif()
 
+config_option(
+    KernelDomainIRQPartitioning DOMAIN_IRQ_PARTITIONING "Enable IRQ partitioning by domain"
+    DEFAULT OFF
+)
+
+config_string(
+    KernelMaxNumDIRQs MAX_NUM_DIRQS "The maximum number of IRQs that can be associated with each domain"
+    DEFAULT 32
+    DEPENDS "KernelDomainIRQPartitioning"
+    UNQUOTE
+)
+
+config_option(
+    KernelDomainMicroarchFlush DOMAIN_MICROARCH_FLUSH "Enable determinisation (by flushing or other means) of microarchitectural state and related timing effects on domain switch"
+    DEFAULT OFF
+)
+
 config_string(
     KernelNumPriorities NUM_PRIORITIES "The number of priority levels per domain. Valid range 1-256"
     DEFAULT 256

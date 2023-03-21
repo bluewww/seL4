@@ -15,6 +15,9 @@
 #include <sel4/arch/constants.h>
 #include <sel4/sel4_arch/constants.h>
 #include <benchmark/benchmark_utilisation_.h>
+#ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
+#include <machine/interrupt.h>
+#endif
 
 enum irq_state {
     IRQInactive  = 0,
@@ -30,6 +33,9 @@ typedef word_t irq_state_t;
 typedef struct dschedule {
     dom_t domain;
     word_t length;
+#ifdef CONFIG_DOMAIN_IRQ_PARTITIONING
+    irq_t irqs[CONFIG_MAX_NUM_DIRQS];
+#endif
 } dschedule_t;
 
 enum asidSizeConstants {

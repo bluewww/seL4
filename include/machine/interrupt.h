@@ -85,6 +85,17 @@ static inline bool_t isIRQPending(void);
 static inline void maskInterrupt(bool_t disable, irq_t irq);
 
 /**
+ * maskInterrupts disables and enables the listed IRQs.
+ *
+ * The list must be in a CONFIG_MAX_NUM_DIRQS sized array but may be terminated
+ * early by irqInvalid.
+ *
+ * @param[in]  disable  True to disable IRQs, False to enable IRQs
+ * @param[in]  irqs     The list of irqs to modify
+ */
+static inline void maskInterrupts(bool_t disable, const irq_t *irqs);
+
+/**
  * Acks the interrupt
  *
  * ackInterrupt is used by the kernel to indicate it has processed the interrupt
