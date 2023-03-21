@@ -525,7 +525,7 @@ config_option(
 )
 
 config_string(
-    KernelColourBits NUM_COLOUR_BITS "The number of colour bits (page bits that overlap index bits) to use for partitioning this system's L2 cache for each domain."
+    KernelColourBits NUM_COLOUR_BITS "The number of colour bits (page bits that overlap index bits) to use for partitioning this system's L2 cache for domains [1..NUM_DOMAINS]. Domain 0 is reserved for the initial kernel image, which is not given a colour."
     DEFAULT 2
     UNQUOTE
     DEPENDS "KernelImages"

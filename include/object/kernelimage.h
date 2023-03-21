@@ -319,7 +319,6 @@ static inline exception_t setKernelImage(kernel_image_t *image)
  * and the initial kernel image. */
 static inline void switchToIdleKernelImage(void)
 {
-#if 1
     exception_t status;
     /* XXX: ideally we would actually switch it to the current domain's
      * top-level kernel image address space, as follows: */
@@ -327,10 +326,6 @@ static inline void switchToIdleKernelImage(void)
     status = setKernelImage(&ksDomKernelImage[ksDomScheduleIdx]);
     printf("switchToIdleKernelImage: Returned from setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
     assert(status == EXCEPTION_NONE);
-#else
-    Arch_setKernelImage(&ksInitialKernelImage);
-    printf("Returned from Arch_setKernelImage for initial kernel image %p (root %p, asid %lu)\n", &ksInitialKernelImage, ksInitialKernelImage.kiRoot, ksInitialKernelImage.kiASID);
-#endif
 }
 
 /* Get the base address of the kernel stack for the current node */

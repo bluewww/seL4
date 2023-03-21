@@ -295,12 +295,15 @@ static BOOT_CODE bool_t try_init_kernel(
     }
 
 #ifdef CONFIG_KERNEL_IMAGES
-    /* XXX: create_kernel_image_cap used to be called here. */
-    if (!init_kernel_image(&ksInitialKernelImage)) {
+    /* we reserve domain 0 for the initial (global) kernel image; this should
+     * only be used by the system initialiser or other helpers it creates that
+     * shouldn't continue to run after system initialisation time */
+    assert(ksDomScheduleIdx == 0);
+    if (!init_kernel_image(&ksDomKernelImage[0])) {
         printf("ERROR: initial kernel image initialisation failed\n");
         return false;
     }
-    printf("init_kernel_image done for %p\n", &ksInitialKernelImage);
+    printf("init_kernel_image done for %p\n", &ksDomKernelImage[0]);
 
     /* initialise the reserved ASID pool for kernel images */
     riscvKSASIDTable[KIASIDPool] = &riscvKSKIASIDPool;
@@ -405,15 +408,10 @@ static BOOT_CODE bool_t try_init_kernel(
     }
     write_it_asid_pool(it_ap_cap, it_pd_cap);
 #ifdef CONFIG_KERNEL_IMAGES
-#if 0
-    /* bind initial vspace to top-level kernel image of initial domain, i.e.
-     * the domain that create_initial_thread assigns to the initial thread */
-    bind_iki_vspace(&ksDomKernelImage[ksDomScheduleIdx], it_pd_cap);
-#endif
-    /* bind initial vspace to initial (global) kernel image, which should only
-     * be used by the system initialiser or other helpers that shouldn't
-     * continue to run after system initialisation time */
-    bind_iki_vspace(&ksInitialKernelImage, it_pd_cap);
+    /* bind initial vspace to top-level kernel image of initial domain 0, i.e.
+     * the domain that create_initial_thread assigns to the initial thread. */
+    assert(ksDomScheduleIdx == 0);
+    bind_iki_vspace(&ksDomKernelImage[0], it_pd_cap);
 #endif
 
 #ifdef CONFIG_KERNEL_MCS
@@ -432,6 +430,23 @@ static BOOT_CODE bool_t try_init_kernel(
         paddr_t memory_addr;
         exception_t err;
         kernel_image_t *image = &ksDomKernelImage[i];
+
+        if (i == 0) {
+            assert(image->kiASID == 0);
+            printf("ASID 0's vspace is %p according to its ASID pool\n", riscvKSASIDTable[0]->array[0]);
+            printf("domain 0's vspace is %p\n", image->kiRoot);
+            /* assert(riscvKSASIDTable[0]->array[0] == image->kiRoot); */
+            riscvKSASIDTable[0]->array[0] = image->kiRoot;
+#if 0
+            assert(image->kiASID == IT_ASID);
+            printf("the IT_ASID's vspace is %p according to its ASID pool\n", riscvKSASIDTable[IT_ASID >> asidLowBits]->array[IT_ASID]);
+            printf("domain 0's vspace is %p\n", image->kiRoot);
+            assert(riscvKSASIDTable[IT_ASID >> asidLowBits]->array[IT_ASID] == image->kiRoot);
+#endif
+            continue;
+        }
+
+        int colourIdx = i - 1;
 
         /* XXX: adapted from createObject's seL4_KernelImageObject case */
         /* No ASID has been assigned yet */
@@ -460,8 +475,8 @@ static BOOT_CODE bool_t try_init_kernel(
         printf("ki_clone_mem_start is %lx\n", memory_addr);
         /* Advance to start of domain i's next page in the kernel clone region
          * (skip the current page, even if it belongs to domain i). */
-        memory_addr = locateNextPageOfColour(i, memory_addr);
-        printf("initial page of colour %d is at %lx\n", i, memory_addr);
+        memory_addr = locateNextPageOfColour(colourIdx, memory_addr);
+        printf("initial page of colour %d (domain %d) is at %lx\n", colourIdx, i, memory_addr);
         if (memory_addr >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
             printf("ERROR: not enough kernel clone memory. region start %lx exceeds %lx\n", memory_addr, kpptr_to_paddr((void *)ki_clone_mem_end));
             return false;
@@ -472,12 +487,12 @@ static BOOT_CODE bool_t try_init_kernel(
 
             /* Check if needed amount of memory starting at memory_addr is
              * wholly in one of domain i's pages. */
-            while (!inPageOfColour(i, memory_addr,
+            while (!inPageOfColour(colourIdx, memory_addr,
                         BIT(kernelImageLevelSizeBits(mapping.kimLevel)))) {
-                printf("page %lx not of colour %d or not big enough for size %lx\n", memory_addr, i, BIT(kernelImageLevelSizeBits(mapping.kimLevel)));
+                printf("page %lx not of colour %d (domain %d) or not big enough for size %lx\n", memory_addr, colourIdx, i, BIT(kernelImageLevelSizeBits(mapping.kimLevel)));
                 /* Advance to domain i's next page. */
-                memory_addr = locateNextPageOfColour(i, memory_addr);
-                printf("now at colour %d page %lx\n", i, memory_addr);
+                memory_addr = locateNextPageOfColour(colourIdx, memory_addr);
+                printf("now at colour %d (domain %d) page %lx\n", colourIdx, i, memory_addr);
                 /* Check we're still within the kernel clone memory region */
                 if (memory_addr >= kpptr_to_paddr((void *)ki_clone_mem_end)) {
                     printf("ERROR: not enough kernel clone memory. region start %lx exceeds %lx\n", memory_addr, kpptr_to_paddr((void *)ki_clone_mem_end));
@@ -494,7 +509,7 @@ static BOOT_CODE bool_t try_init_kernel(
                 return false;
             }
 
-            printf("mapping %d for colour %d at page %lx\n", j, i, memory_addr);
+            printf("mapping %d for colour %d (domain %d) at page %lx\n", j, colourIdx, i, memory_addr);
             err = kernelMemoryMap(image, &mapping, paddr_to_pptr(memory_addr));
             if (err != EXCEPTION_NONE) {
                 printf("ERROR: kernelMemoryMap failed with exception %lu\n", err);
@@ -510,15 +525,16 @@ static BOOT_CODE bool_t try_init_kernel(
          * kimLevel 0 invocation of kernelMemoryMap. */
 
         /* initialise reserved ASID and its pool entry for this kernel image */
-        image->kiASID = (KIASIDPool << asidLowBits) + i;
-        riscvKSASIDTable[KIASIDPool]->array[i] = image->kiRoot;
+        image->kiASID = (KIASIDPool << asidLowBits) + colourIdx;
+        riscvKSASIDTable[KIASIDPool]->array[colourIdx] = image->kiRoot;
 
-        err = kernelImageClone(image, &ksInitialKernelImage);
+        assert(ksDomScheduleIdx == 0);
+        err = kernelImageClone(image, &ksDomKernelImage[0]);
         if (err != EXCEPTION_NONE) {
             printf("ERROR: kernelImageClone failed with exception %lu\n", err);
             return false;
         }
-        printf("kernelImageClone done for colour %d, image %p\n", i, image);
+        printf("kernelImageClone done for colour %d (domain %d), image %p\n", colourIdx, i, image);
     }
 #endif
 

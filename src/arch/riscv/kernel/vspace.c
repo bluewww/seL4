@@ -611,23 +611,6 @@ void setVMRoot(tcb_t *tcb)
         return;
     }
 
-    if (unlikely(asid == IT_ASID)) {
-        exception_t status;
-
-        /* always allow the initial thread to run in the kernel image of the
-         * current domain, as it is not assigned to any domain and we do not
-         * expect it to continue running after system initialisation */
-        printf("setVMRoot: binding IT_ASID to domain %lu's kernel image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
-        kernelImageBindVSpace(&ksDomKernelImage[ksDomScheduleIdx], IT_ASID);
-
-        /* ensure that we are in the current domain's kernel image, and in
-         * particular that its stack has already been initialised */
-        printf("setVMRoot: Calling setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
-        status = setKernelImage(&ksDomKernelImage[ksDomScheduleIdx]);
-        printf("setVMRoot: Returned from setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
-        assert(status == EXCEPTION_NONE);
-    }
-
     printf("setVMRoot: found vspace for ASID %lu; calling setVSpaceRoot\n", asid);
     setVSpaceRoot(addrFromPPtr(lvl1pt), asid);
     printf("setVMRoot: returning from setVSpaceRoot for ASID %lu\n", asid);

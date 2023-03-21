@@ -163,6 +163,11 @@ void Arch_setKernelImage(kernel_image_t *image)
 
     if (image->kiStackInitted) {
         printf("Calling setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(image->kiRoot), image->kiRoot, image->kiASID);
+        /* XXX: debugging */
+        if (image->kiASID == 0) {
+            printf("ASID 0's vspace is %p according to its ASID pool\n", riscvKSASIDTable[0]->array[0]);
+            printf("domain 0's vspace is %p\n", image->kiRoot);
+        }
         setVSpaceRoot(addrFromPPtr(image->kiRoot), image->kiASID);
         printf("Returned from setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(image->kiRoot), image->kiRoot, image->kiASID);
         printf("END Arch_setKernelImage without stack copy for image %p (from ksCurKernelImage %p)\n", image, ksCurKernelImage);

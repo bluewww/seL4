@@ -273,6 +273,11 @@ compile_assert(num_domains_valid,
                CONFIG_NUM_DOMAINS >= 1 && CONFIG_NUM_DOMAINS <= 256)
 compile_assert(num_priorities_valid,
                CONFIG_NUM_PRIORITIES >= 1 && CONFIG_NUM_PRIORITIES <= 256)
+#ifdef CONFIG_KERNEL_IMAGES
+compile_assert(num_colour_bits_valid,
+               CONFIG_NUM_COLOUR_BITS >= 1 && CONFIG_NUM_COLOUR_BITS < 16 &&
+               BIT(CONFIG_NUM_COLOUR_BITS) >= CONFIG_NUM_DOMAINS - 1)
+#endif
 
 BOOT_CODE void
 create_domain_cap(cap_t root_cnode_cap)
@@ -466,6 +471,11 @@ BOOT_CODE bool_t init_kernel_image(kernel_image_t *image)
      * kernel region mapped. */
     image->kiRoot = ksGlobalKernelImage;
 
+#if 0
+    /* Associate this kernel image with the initial thread's ASID */
+    image->kiASID = IT_ASID;
+#endif
+
     /* Then need to assign the inital vspace to the created image */
 
     /* All memories should already be mapped */
@@ -476,6 +486,9 @@ BOOT_CODE bool_t init_kernel_image(kernel_image_t *image)
 
     /* The image is runnable (we're already running on it) */
     image->kiRunnable = true;
+
+    /* The image's stack has been initialised (we're running on it) */
+    image->kiStackInitted = true;
 
     return true;
 }
