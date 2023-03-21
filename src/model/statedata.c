@@ -62,10 +62,6 @@ UP_STATE_DEFINE(sched_context_t *, ksIdleSC);
 #ifdef CONFIG_KERNEL_IMAGES
 /* Root paging structure of the current kernel image */
 UP_STATE_DEFINE(kernel_image_t *, ksCurKernelImage);
-/* Flag to indicate the kernel image was switched since entry into the
- * kernel. This is used to determine whether a flush should occur on
- * exit */
-UP_STATE_DEFINE(bool_t, ksKernelImageChanged);
 #endif
 
 #ifdef CONFIG_DEBUG_BUILD

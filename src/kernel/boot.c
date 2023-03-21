@@ -471,10 +471,7 @@ BOOT_CODE bool_t init_kernel_image(kernel_image_t *image)
      * kernel region mapped. */
     image->kiRoot = ksGlobalKernelImage;
 
-#if 0
-    /* Associate this kernel image with the initial thread's ASID */
-    image->kiASID = IT_ASID;
-#endif
+    /* Note: This kernel image will be associated with ASID 0 */
 
     /* Then need to assign the inital vspace to the created image */
 

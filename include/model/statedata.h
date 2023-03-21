@@ -74,7 +74,6 @@ NODE_STATE_DECLARE(sched_context_t, *ksIdleSC);
 
 #ifdef CONFIG_KERNEL_IMAGES
 NODE_STATE_DECLARE(kernel_image_t *, ksCurKernelImage);
-NODE_STATE_DECLARE(bool_t, ksKernelImageChanged);
 #endif
 
 #ifdef CONFIG_HAVE_FPU

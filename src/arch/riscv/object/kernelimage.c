@@ -149,7 +149,21 @@ void Arch_setKernelImage(kernel_image_t *image)
     /* Set the kernel address space to the given root */
     /* If vspace shared with user, set user to empty vspace */
 
-    printf("BEGIN Arch_setKernelImage for image %p (from ksCurKernelImage %p)\n", image, ksCurKernelImage);
+    printf("    Arch_setKernelImage: BEGIN for image %p (from ksCurKernelImage %p)\n", image, ksCurKernelImage);
+
+    if (image->kiStackInitted) {
+        /* The global kimage used for ASID 0 is in the ELF mapping */
+        paddr_t kiRootPAddr = image->kiASID ?
+            addrFromPPtr(image->kiRoot) : addrFromKPPtr(image->kiRoot);
+        printf("    Arch_setKernelImage: Calling setVSpaceRoot for %lx (from %p), asid %lu.\n", kiRootPAddr, image->kiRoot, image->kiASID);
+        setVSpaceRoot(kiRootPAddr, image->kiASID);
+        printf("    Arch_setKernelImage: Returned from setVSpaceRoot for %lx (from %p), asid %lu.\n", kiRootPAddr, image->kiRoot, image->kiASID);
+        printf("    Arch_setKernelImage: END without stack copy for image %p (from ksCurKernelImage %p)\n", image, ksCurKernelImage);
+        return;
+    }
+
+    /* The only kernel images with uninitialised stacks should be the clones */
+    assert(image->kiASID != 0);
 
     vptr_t stack_p = kernelStackBase();
     /* XXX: This unbelievably dodgy hack appears to work. It's because the
@@ -161,23 +175,6 @@ void Arch_setKernelImage(kernel_image_t *image)
      * Need to fix this properly. */
     vptr_t image_p = kernelImageVPtr(image->kiRoot, stack_p - 1) + 1;
 
-    if (image->kiStackInitted) {
-        printf("Calling setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(image->kiRoot), image->kiRoot, image->kiASID);
-        /* XXX: debugging */
-        if (image->kiASID == 0) {
-            printf("ASID 0's vspace is %p according to its ASID pool\n", riscvKSASIDTable[0]->array[0]);
-            printf("domain 0's vspace is %p\n", image->kiRoot);
-            setVSpaceRoot(addrFromKPPtr(image->kiRoot), image->kiASID);
-            printf("Returned from setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(image->kiRoot), image->kiRoot, image->kiASID);
-            printf("END Arch_setKernelImage without stack copy for image %p (from ksCurKernelImage %p)\n", image, ksCurKernelImage);
-            return;
-        }
-        setVSpaceRoot(addrFromPPtr(image->kiRoot), image->kiASID);
-        printf("Returned from setVSpaceRoot for %lx (from %p), asid %lu.\n", addrFromPPtr(image->kiRoot), image->kiRoot, image->kiASID);
-        printf("END Arch_setKernelImage without stack copy for image %p (from ksCurKernelImage %p)\n", image, ksCurKernelImage);
-        return;
-    }
-
 #if 0
     printf("Precopy dump from %p at current root %p:\n", (void *)(stack_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t)), ksCurKernelImage->kiRoot);
     Arch_stackTrace(stack_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t), ksCurKernelImage->kiRoot);
@@ -186,9 +183,9 @@ void Arch_setKernelImage(kernel_image_t *image)
     Arch_stackTrace(image_p - CONFIG_USER_STACK_TRACE_LENGTH * sizeof(word_t), ksCurKernelImage->kiRoot);
 #endif
 
-    printf("ksDomScheduleIdx: %lu\n", ksDomScheduleIdx);
+    //printf("ksDomScheduleIdx: %lu\n", ksDomScheduleIdx);
 
-    printf("Copying stack from base %p -> %p, switching vspace root to %lx (from %p), asid %lu.\n", (void *)stack_p, (void *)image_p, addrFromPPtr(image->kiRoot), image->kiRoot, image->kiASID);
+    printf("    Arch_setKernelImage: Copying stack from base %p -> %p, switching vspace root to %lx (from %p), asid %lu.\n", (void *)stack_p, (void *)image_p, addrFromPPtr(image->kiRoot), image->kiRoot, image->kiASID);
 
     asm volatile(
         /* Copy stack */
@@ -212,9 +209,9 @@ void Arch_setKernelImage(kernel_image_t *image)
         : "t1", "memory"
     );
     setVSpaceRoot(addrFromPPtr(image->kiRoot), image->kiASID);
-    printf("Stack top after switch %p -> %p\n", (void *)stack_p, (void *)image_p);
+    //printf("Stack top after switch %p -> %p\n", (void *)stack_p, (void *)image_p);
 
-    printf("ksDomScheduleIdx: %lu\n", ksDomScheduleIdx);
+    //printf("ksDomScheduleIdx: %lu\n", ksDomScheduleIdx);
     image->kiStackInitted = true;
 
 #if 0
@@ -225,5 +222,5 @@ void Arch_setKernelImage(kernel_image_t *image)
     Arch_stackTrace(image_p, image->kiRoot);
 #endif
 
-    printf("END Arch_setKernelImage with stack copy for image %p (from ksCurKernelImage %p)\n", image, ksCurKernelImage);
+    printf("    Arch_setKernelImage: END with stack copy for image %p (from ksCurKernelImage %p)\n", image, ksCurKernelImage);
 }

@@ -426,26 +426,10 @@ static BOOT_CODE bool_t try_init_kernel(
 #ifdef CONFIG_KERNEL_IMAGES
     /* the kernel clone creation has to happen after the creation of the idle
      * thread to ensure the idle thread is copied to the kernel clones */
-    for (int i = 0; i < ksDomScheduleLength; i++) {
+    for (int i = 1; i < ksDomScheduleLength; i++) {
         paddr_t memory_addr;
         exception_t err;
         kernel_image_t *image = &ksDomKernelImage[i];
-
-        if (i == 0) {
-            assert(image->kiASID == 0);
-            printf("ASID 0's vspace is %p according to its ASID pool\n", riscvKSASIDTable[0]->array[0]);
-            printf("domain 0's vspace is %p\n", image->kiRoot);
-            /* assert(riscvKSASIDTable[0]->array[0] == image->kiRoot); */
-            /* riscvKSASIDTable[0]->array[0] = image->kiRoot; */
-#if 0
-            assert(image->kiASID == IT_ASID);
-            printf("the IT_ASID's vspace is %p according to its ASID pool\n", riscvKSASIDTable[IT_ASID >> asidLowBits]->array[IT_ASID]);
-            printf("domain 0's vspace is %p\n", image->kiRoot);
-            assert(riscvKSASIDTable[IT_ASID >> asidLowBits]->array[IT_ASID] == image->kiRoot);
-#endif
-            continue;
-        }
-
         int colourIdx = i - 1;
 
         /* XXX: adapted from createObject's seL4_KernelImageObject case */

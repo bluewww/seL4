@@ -302,12 +302,10 @@ static inline exception_t setKernelImage(kernel_image_t *image)
 
     if (likely(image->kiRunnable)) {
         if (unlikely(image != NODE_STATE(ksCurKernelImage))) {
-            printf("Calling Arch_setKernelImage for image %p (root %p, asid %lu)\n", image, image->kiRoot, image->kiASID);
+            printf("   setKernelImage: Calling Arch_setKernelImage for image %p (root %p, asid %lu)\n", image, image->kiRoot, image->kiASID);
             Arch_setKernelImage(image);
-            printf("Returned from Arch_setKernelImage for image %p (root %p, asid %lu)\n", image, image->kiRoot, image->kiASID);
+            printf("   setKernelImage: Returned from Arch_setKernelImage for image %p (root %p, asid %lu)\n", image, image->kiRoot, image->kiASID);
             NODE_STATE(ksCurKernelImage) = image;
-            /* XXX: why is this needed? can we remove it? */
-            NODE_STATE(ksKernelImageChanged) = true;
         }
         return EXCEPTION_NONE;
     } else {
@@ -320,11 +318,9 @@ static inline exception_t setKernelImage(kernel_image_t *image)
 static inline void switchToIdleKernelImage(void)
 {
     exception_t status;
-    /* XXX: ideally we would actually switch it to the current domain's
-     * top-level kernel image address space, as follows: */
-    printf("switchToIdleKernelImage: Calling setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
+    printf("  switchToIdleKernelImage: Calling setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
     status = setKernelImage(&ksDomKernelImage[ksDomScheduleIdx]);
-    printf("switchToIdleKernelImage: Returned from setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
+    printf("  switchToIdleKernelImage: Returned from setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
     assert(status == EXCEPTION_NONE);
 }
 
@@ -353,14 +349,10 @@ static inline paddr_t locateNextPageOfColour(int i, paddr_t memory_addr)
      * hardware with more colours than domains, one can avoid wasting space by
      * configuring a smaller NUM_COLOUR_BITS to reduce the number of actual
      * hardware colour bits used to partition the L2 cache for each domain. */
-    printf("%lx\n", memory_addr);
     /* avoid skipping page if at beginning of next group of (2^n + 1) pages */
     memory_addr -= 1;
-    printf("%lx\n", memory_addr);
     memory_addr &= ~MASK(PAGE_BITS + CONFIG_NUM_COLOUR_BITS);
-    printf("%lx\n", memory_addr);
     memory_addr |= i << PAGE_BITS;
-    printf("%lx\n", memory_addr);
 
     /* Advance to the next page of this colour. */
     return memory_addr + BIT(PAGE_BITS + CONFIG_NUM_COLOUR_BITS);
