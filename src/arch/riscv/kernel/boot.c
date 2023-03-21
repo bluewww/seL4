@@ -436,7 +436,7 @@ static BOOT_CODE bool_t try_init_kernel(
             printf("ASID 0's vspace is %p according to its ASID pool\n", riscvKSASIDTable[0]->array[0]);
             printf("domain 0's vspace is %p\n", image->kiRoot);
             /* assert(riscvKSASIDTable[0]->array[0] == image->kiRoot); */
-            riscvKSASIDTable[0]->array[0] = image->kiRoot;
+            /* riscvKSASIDTable[0]->array[0] = image->kiRoot; */
 #if 0
             assert(image->kiASID == IT_ASID);
             printf("the IT_ASID's vspace is %p according to its ASID pool\n", riscvKSASIDTable[IT_ASID >> asidLowBits]->array[IT_ASID]);
