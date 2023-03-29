@@ -288,12 +288,17 @@
                 Assign an ASID Pool.
             </brief>
             <description>
-                Assigns an ASID to the VSpace passed in as an argument.
+                Assigns an ASID and domain to the VSpace passed in as an argument.
             </description>
             <param dir="in" name="vspace" type="seL4_CPtr">
             <description>
                 The top-level <texttt text="PageTable" /> that is being assigned to an ASID pool. Must not already be assigned
                     to an ASID pool.
+            </description>
+            </param>
+            <param dir="in" name="domain" type="seL4_Uint8">
+            <description>
+                The domain to assign to the VSpace.
             </description>
             </param>
             <error name="seL4_DeleteFirst">
@@ -311,6 +316,12 @@
                     The <texttt text="_service"/> or <texttt text="vspace"/> is a CPtr to a capability of the wrong type.
                     Or, <texttt text="vspace"/> is already assigned to an ASID pool.
                     Or, <texttt text="vspace"/> is mapped in a VSpace.
+                </description>
+            </error>
+            <error name="seL4_InvalidArgument">
+                <description>
+                    The <texttt text="domain"/> is greater than <texttt text="CONFIG_NUM_DOMAINS"/>.
+                    Or, the <texttt text="domain"/> is invalid because it does not have a valid kernel image.
                 </description>
             </error>
         </method>

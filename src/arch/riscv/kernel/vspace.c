@@ -470,7 +470,11 @@ static exception_t performASIDControlInvocation(void *frame, cte_t *slot, cte_t 
     return EXCEPTION_NONE;
 }
 
+#ifdef CONFIG_KERNEL_IMAGES
+static exception_t performASIDPoolInvocation(asid_t asid, asid_pool_t *poolPtr, cte_t *vspaceCapSlot, kernel_image_t *image)
+#else
 static exception_t performASIDPoolInvocation(asid_t asid, asid_pool_t *poolPtr, cte_t *vspaceCapSlot)
+#endif
 {
     cap_t cap = vspaceCapSlot->cap;
     pte_t *regionBase = PTE_PTR(cap_page_table_cap_get_capPTBasePtr(cap));
@@ -482,6 +486,10 @@ static exception_t performASIDPoolInvocation(asid_t asid, asid_pool_t *poolPtr, 
     copyGlobalMappings(regionBase);
 
     poolPtr->array[asid & MASK(asidLowBits)] = regionBase;
+
+#ifdef CONFIG_KERNEL_IMAGES
+    kernelImageBindVSpace(image, asid);
+#endif
 
     return EXCEPTION_NONE;
 }
@@ -1029,6 +1037,10 @@ exception_t decodeRISCVMMUInvocation(word_t label, word_t length, cptr_t cptr,
         asid_pool_t *pool;
         word_t i;
         asid_t       asid;
+#ifdef CONFIG_KERNEL_IMAGES
+        word_t domain;
+        kernel_image_t *image = NULL;
+#endif
 
         if (label != RISCVASIDPoolAssign) {
             current_syscall_error.type = seL4_IllegalOperation;
@@ -1040,6 +1052,34 @@ exception_t decodeRISCVMMUInvocation(word_t label, word_t length, cptr_t cptr,
 
             return EXCEPTION_SYSCALL_ERROR;
         }
+#ifdef CONFIG_KERNEL_IMAGES
+        if (unlikely(length == 0)) {
+            userError("RISCVASIDPool: Truncated message.");
+            current_syscall_error.type = seL4_TruncatedMessage;
+            return EXCEPTION_SYSCALL_ERROR;
+        }
+        domain = getSyscallArg(0, buffer);
+        if (domain >= numDomains) {
+            userError("RISCVASIDPool: invalid domain (%lu >= %u).",
+                      domain, numDomains);
+            current_syscall_error.type = seL4_InvalidArgument;
+            current_syscall_error.invalidArgumentNumber = 0;
+            return EXCEPTION_SYSCALL_ERROR;
+        }
+        for (i = 0; i < ksDomScheduleLength; i++) {
+            if (ksDomSchedule[i].domain == domain) {
+                image = &ksDomKernelImage[i];
+                break;
+            }
+        }
+        if (unlikely(image == NULL)) {
+            userError("RISCVASIDPool: invalid domain (%lu), no kernel image.",
+                      domain);
+            current_syscall_error.type = seL4_InvalidArgument;
+            current_syscall_error.invalidArgumentNumber = 0;
+            return EXCEPTION_SYSCALL_ERROR;
+        }
+#endif
 
         vspaceCapSlot = current_extra_caps.excaprefs[0];
         vspaceCap = vspaceCapSlot->cap;
@@ -1081,7 +1121,11 @@ exception_t decodeRISCVMMUInvocation(word_t label, word_t length, cptr_t cptr,
         asid += i;
 
         setThreadState(NODE_STATE(ksCurThread), ThreadState_Restart);
+#ifdef CONFIG_KERNEL_IMAGES
+        return performASIDPoolInvocation(asid, pool, vspaceCapSlot, image);
+#else
         return performASIDPoolInvocation(asid, pool, vspaceCapSlot);
+#endif
     }
     default:
         fail("Invalid arch cap type");

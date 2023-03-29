@@ -400,7 +400,7 @@ exception_t kernelImageBindVSpace(kernel_image_t *image, asid_t vspace_asid)
     }
 
     printf("kernelImageBindVSpace: Completed for image %p, asid %lu.\nThe asid points to vspace_root %p, which we think should be the same as %p.\n",
-        image, vspace_asid, vspace_root, riscvKSASIDTable[0]->array[IT_ASID]);
+        image, vspace_asid, vspace_root, riscvKSASIDTable[vspace_asid >> asidLowBits]->array[vspace_asid & MASK(asidLowBits)]);
 
     return EXCEPTION_NONE;
 }
