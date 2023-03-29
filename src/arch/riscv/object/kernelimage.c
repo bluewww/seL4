@@ -145,6 +145,7 @@ exception_t Arch_kernelImageCloneEntry(kernel_image_root_t *dest, kernel_image_r
 
 void Arch_setKernelImage(kernel_image_t *image)
 {
+    vptr_t ret_p, s_p;
     /* Copy the stack into the given addres space */
     /* Set the kernel address space to the given root */
     /* If vspace shared with user, set user to empty vspace */
@@ -155,10 +156,25 @@ void Arch_setKernelImage(kernel_image_t *image)
         /* The global kimage used for ASID 0 is in the ELF mapping */
         paddr_t kiRootPAddr = image->kiASID ?
             addrFromPPtr(image->kiRoot) : addrFromKPPtr(image->kiRoot);
+
+        asm volatile(
+            "ld %[ret_p], 72(sp)\n"
+            "mv %[s_p], sp\n"
+            : [ret_p] "=r" (ret_p), [s_p] "=r" (s_p));
+        printf("    Arch_setKernelImage: ra is %p, sp is %p\n", (void *)ret_p, (void *)s_p);
+
         printf("    Arch_setKernelImage: Calling setVSpaceRoot for %lx (from %p), asid %lu.\n", kiRootPAddr, image->kiRoot, image->kiASID);
+        asm volatile("fence");
         setVSpaceRoot(kiRootPAddr, image->kiASID);
         printf("    Arch_setKernelImage: Returned from setVSpaceRoot for %lx (from %p), asid %lu.\n", kiRootPAddr, image->kiRoot, image->kiASID);
         printf("    Arch_setKernelImage: END without stack copy for image %p (from ksCurKernelImage %p)\n", image, NODE_STATE(ksCurKernelImage));
+
+        asm volatile(
+            "ld %[ret_p], 72(sp)\n"
+            "mv %[s_p], sp\n"
+            : [ret_p] "=r" (ret_p), [s_p] "=r" (s_p));
+        printf("    Arch_setKernelImage: ra is %p, sp is %p\n", (void *)ret_p, (void *)s_p);
+
         return;
     }
 
@@ -184,6 +200,12 @@ void Arch_setKernelImage(kernel_image_t *image)
 #endif
 
     //printf("ksDomScheduleIdx: %lu\n", ksDomScheduleIdx);
+
+    asm volatile(
+        "ld %[ret_p], 72(sp)\n"
+        "mv %[s_p], sp\n"
+        : [ret_p] "=r" (ret_p), [s_p] "=r" (s_p));
+    printf("    Arch_setKernelImage: ra is %p, sp is %p\n", (void *)ret_p, (void *)s_p);
 
     printf("    Arch_setKernelImage: Copying stack from base %p -> %p, switching vspace root to %lx (from %p), asid %lu.\n", (void *)stack_p, (void *)image_p, addrFromPPtr(image->kiRoot), image->kiRoot, image->kiASID);
 
@@ -223,4 +245,10 @@ void Arch_setKernelImage(kernel_image_t *image)
 #endif
 
     printf("    Arch_setKernelImage: END with stack copy for image %p (from ksCurKernelImage %p)\n", image, NODE_STATE(ksCurKernelImage));
+
+    asm volatile(
+        "ld %[ret_p], 72(sp)\n"
+        "mv %[s_p], sp\n"
+        : [ret_p] "=r" (ret_p), [s_p] "=r" (s_p));
+    printf("    Arch_setKernelImage: ra is %p, sp is %p\n", (void *)ret_p, (void *)s_p);
 }
