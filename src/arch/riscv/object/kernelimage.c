@@ -169,6 +169,8 @@ void Arch_setKernelImage(kernel_image_t *image)
         printf("    Arch_setKernelImage: Returned from setVSpaceRoot for %lx (from %p), asid %lu.\n", kiRootPAddr, image->kiRoot, image->kiASID);
         printf("    Arch_setKernelImage: END without stack copy for image %p (from ksCurKernelImage %p)\n", image, NODE_STATE(ksCurKernelImage));
 
+        NODE_STATE(ksCurKernelImage) = image;
+
         asm volatile(
             "ld %[ret_p], 72(sp)\n"
             "mv %[s_p], sp\n"
@@ -245,6 +247,8 @@ void Arch_setKernelImage(kernel_image_t *image)
 #endif
 
     printf("    Arch_setKernelImage: END with stack copy for image %p (from ksCurKernelImage %p)\n", image, NODE_STATE(ksCurKernelImage));
+
+    NODE_STATE(ksCurKernelImage) = image;
 
     asm volatile(
         "ld %[ret_p], 72(sp)\n"

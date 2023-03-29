@@ -301,14 +301,13 @@ static inline exception_t setKernelImage(kernel_image_t *image)
     assert(image != NULL);
 
     if (likely(image->kiRunnable)) {
-        /* XXX: ksCurKernelImage doesn't always seem reliable according to the
-         * debug output, so just try always switching kimage unconditionally */
-        //if (unlikely(image != NODE_STATE(ksCurKernelImage))) {
+        if (unlikely(image != NODE_STATE(ksCurKernelImage))) {
             printf("   setKernelImage: Calling Arch_setKernelImage for image %p (root %p, asid %lu)\n", image, image->kiRoot, image->kiASID);
+            /* Note: Arch_setKernelImage is responsible for setting
+             * ksCurKernelImage to the new image. */
             Arch_setKernelImage(image);
             printf("   setKernelImage: Returned from Arch_setKernelImage for image %p (root %p, asid %lu)\n", image, image->kiRoot, image->kiASID);
-            NODE_STATE(ksCurKernelImage) = image;
-        //}
+        }
         return EXCEPTION_NONE;
     } else {
         return EXCEPTION_FAULT;
