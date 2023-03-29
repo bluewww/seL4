@@ -103,6 +103,7 @@ add_sources(
         smp/ipi.c
     ASMFILES head.S traps.S
 )
-add_sources(DEP KernelImages PREFIX src/arch/riscv CFILES object/kernelimage.c)
+add_sources(DEP KernelImages PREFIX src/arch/riscv CFILES object/kernelimage.c
+    ASMFILES object/kernelimage.S)
 
 add_bf_source_old("KernelArchRiscV" "structures.bf" "include/arch/riscv" "arch/object")

@@ -113,6 +113,9 @@ struct kernel_image {
     /* Whether the kernel stack has been initialised properly for this image.
      * This should take place immediately prior to the initial switch to it. */
     bool_t kiStackInitted;
+
+    /* The sp value to restore on switching back to this image. */
+    vptr_t kiStackPointer;
 };
 typedef struct kernel_image kernel_image_t;
 
