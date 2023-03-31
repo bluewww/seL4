@@ -362,9 +362,9 @@ static void scheduleChooseNewThread(void)
          * support more complex domain schedules than that, we will need to
          * develop a proper way to relate the ksDomScheduleIdx (probably via
          * the actual domain identifier dom_t) to the domain's kernel image. */
-        printf("scheduleChooseNewThread: Calling setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
+        //printf("scheduleChooseNewThread: Calling setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
         status = setKernelImage(&ksDomKernelImage[ksDomScheduleIdx]);
-        printf("scheduleChooseNewThread: Returned from setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
+        //printf("scheduleChooseNewThread: Returned from setKernelImage for domain %lu's image %p (root %p, asid %lu)\n", ksDomScheduleIdx, &ksDomKernelImage[ksDomScheduleIdx], ksDomKernelImage[ksDomScheduleIdx].kiRoot, ksDomKernelImage[ksDomScheduleIdx].kiASID);
         assert(status == EXCEPTION_NONE);
 #endif
 #ifdef CONFIG_DOMAIN_IRQ_PARTITIONING

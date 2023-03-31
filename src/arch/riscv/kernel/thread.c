@@ -43,14 +43,14 @@ void Arch_switchToIdleThread(void)
     tcb_t *tcb = NODE_STATE(ksIdleThread);
 
 #ifdef CONFIG_KERNEL_IMAGES
-    printf("Arch_switchToIdleThread calling setVMRoot for tcb %p from ksIdleThread %p\n", tcb, ksIdleThread);
+    //printf("Arch_switchToIdleThread calling setVMRoot for tcb %p from ksIdleThread %p\n", tcb, ksIdleThread);
 #endif
 
     /* Force the idle thread to run on kernel page table */
     setVMRoot(tcb);
 
 #ifdef CONFIG_KERNEL_IMAGES
-    printf("Arch_switchToIdleThread: returned from setVMRoot for tcb %p from ksIdleThread %p\n", tcb, ksIdleThread);
+    //printf("Arch_switchToIdleThread: returned from setVMRoot for tcb %p from ksIdleThread %p\n", tcb, ksIdleThread);
 #endif
 }
 
