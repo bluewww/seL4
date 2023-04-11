@@ -399,8 +399,9 @@ exception_t kernelImageBindVSpace(kernel_image_t *image, asid_t vspace_asid)
         vspace_root[base_index + entry] = image->kiRoot[base_index + entry];
     }
 
-    printf("kernelImageBindVSpace: Completed for image %p, asid %lu.\nThe asid points to vspace_root %p, which we think should be the same as %p.\n",
-        image, vspace_asid, vspace_root, riscvKSASIDTable[vspace_asid >> asidLowBits]->array[vspace_asid & MASK(asidLowBits)]);
+    printf("kernelImageBindVSpace: Bound asid %lu (vspace_root %p) to kimage %p.\n", vspace_asid, vspace_root, image);
+    //assert(vspace_root == riscvKSASIDTable[vspace_asid >> asidLowBits]->array[vspace_asid & MASK(asidLowBits)]);
+    //printf("The asid points to vspace_root %p, which we think should be the same as %p.\n", vspace_root, riscvKSASIDTable[vspace_asid >> asidLowBits]->array[vspace_asid & MASK(asidLowBits)]);
 
     return EXCEPTION_NONE;
 }
