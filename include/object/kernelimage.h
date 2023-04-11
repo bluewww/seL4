@@ -302,11 +302,11 @@ static inline exception_t setKernelImage(kernel_image_t *image)
 
     if (likely(image->kiRunnable)) {
         if (unlikely(image != NODE_STATE(ksCurKernelImage))) {
-            printf("   setKernelImage: %p -> %p\n", NODE_STATE(ksCurKernelImage), image);
+            //printf("   setKernelImage: %p -> %p\n", NODE_STATE(ksCurKernelImage), image);
             /* Note: Arch_setKernelImage is responsible for setting
              * ksCurKernelImage to the new image. */
             Arch_setKernelImage(image);
-            printf("   setKernelImage: -> %p done.\n", NODE_STATE(ksCurKernelImage));
+            //printf("   setKernelImage: -> %p done.\n", NODE_STATE(ksCurKernelImage));
         }
         return EXCEPTION_NONE;
     } else {

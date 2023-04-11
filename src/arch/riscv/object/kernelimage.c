@@ -153,7 +153,7 @@ void Arch_setKernelImage(kernel_image_t *image)
     /* Set the kernel address space to the given root */
     /* If vspace shared with user, set user to empty vspace */
 
-    printf("    Arch_setKernelImage: %p -> %p\n", NODE_STATE(ksCurKernelImage), image);
+    //printf("    Arch_setKernelImage: %p -> %p\n", NODE_STATE(ksCurKernelImage), image);
 
     assert(image != NODE_STATE(ksCurKernelImage));
 
