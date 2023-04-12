@@ -430,7 +430,7 @@ static BOOT_CODE bool_t try_init_kernel(
         paddr_t memory_addr;
         exception_t err;
         kernel_image_t *image = &ksDomKernelImage[i];
-        int colourIdx = i - 1;
+        int colourIdx = (i - 1) * 8; /* CC_DIV = 8 */
 
         /* XXX: adapted from createObject's seL4_KernelImageObject case */
         /* No ASID has been assigned yet */
