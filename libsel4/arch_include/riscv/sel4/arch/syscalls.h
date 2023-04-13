@@ -154,6 +154,15 @@ static inline void riscv_sys_send_recv(seL4_Word sys, seL4_Word dest, seL4_Word 
     *in_out_mr3 = msg3;
 }
 
+#ifdef CONFIG_KERNEL_SHARED_GADGET
+static inline void riscv_sys_access_shared_gadget(seL4_Word sets)
+{
+    register seL4_Word arg1 asm("a0") = sets;
+    register seL4_Word scno asm("a7") = seL4_SysAccessSharedGadget;
+    asm volatile("ecall" : "+r"(arg1) : "r"(scno));
+}
+#endif
+
 #ifdef CONFIG_KERNEL_MCS
 static inline void riscv_sys_nbsend_recv(seL4_Word sys, seL4_Word dest, seL4_Word src, seL4_Word *out_badge,
                                          seL4_Word info_arg,

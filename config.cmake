@@ -611,4 +611,10 @@ config_option(
     DEFAULT OFF
 )
 
+config_option(
+    KernelSharedGadget KERNEL_SHARED_GADGET
+    "Add a gadet provoking a timing channel via shared kernel data."
+    DEFAULT OFF
+)
+
 add_config_library(kernel "${configure_string}")

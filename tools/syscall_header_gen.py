@@ -181,6 +181,13 @@ def parse_xml(xml_file, mcs):
               file=sys.stderr)
         sys.exit(-1)
 
+    # gadget elements are optional
+    gadget = doc.getElementsByTagName("gadget")
+    if len(gadget) != 1:
+        gadget_element = None
+    else:
+        gadget_element = gadget[0]
+
     # debug elements are optional
     debug = doc.getElementsByTagName("debug")
     if len(debug) != 1:
@@ -189,9 +196,10 @@ def parse_xml(xml_file, mcs):
         debug_element = debug[0]
 
     api_elements = parse_syscall_list(api[0])
+    gadget = parse_syscall_list(gadget_element)
     debug = parse_syscall_list(debug_element)
 
-    return (api_elements, debug)
+    return (api_elements, gadget, debug)
 
 
 def convert_to_assembler_format(s):
@@ -209,11 +217,11 @@ def map_syscalls_neg(syscalls):
     return [(cond, [(s, next(r)) for s in lst]) for (cond, lst) in syscalls]
 
 
-def generate_kernel_file(kernel_header, api, debug):
+def generate_kernel_file(kernel_header, api, gadget, debug):
     template = Environment(loader=BaseLoader, trim_blocks=False,
                            lstrip_blocks=False).from_string(KERNEL_HEADER_TEMPLATE)
     data = template.render({'assembler': map_syscalls_neg(api),
-                            'enum': map_syscalls_neg(api + debug),
+                            'enum': map_syscalls_neg(api + gadget + debug),
                             'upper': convert_to_assembler_format,
                             'syscall_min': -sum([len(lst) for (cond, lst) in api])})
     kernel_header.write(data)
@@ -229,13 +237,13 @@ def generate_libsel4_file(libsel4_header, syscalls):
 if __name__ == "__main__":
     args = parse_args()
 
-    (api, debug) = parse_xml(args.xml, args.mcs)
+    (api, gadget, debug) = parse_xml(args.xml, args.mcs)
     args.xml.close()
 
     if (args.kernel_header is not None):
-        generate_kernel_file(args.kernel_header, api, debug)
+        generate_kernel_file(args.kernel_header, api, gadget, debug)
         args.kernel_header.close()
 
     if (args.libsel4_header is not None):
-        generate_libsel4_file(args.libsel4_header, api + debug)
+        generate_libsel4_file(args.libsel4_header, api + gadget + debug)
         args.libsel4_header.close()

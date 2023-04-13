@@ -17,6 +17,7 @@
         <xsd:sequence>
             <xsd:element name="api-master" type="ApiType" />
             <xsd:element name="api-mcs" type="ApiType" />
+            <xsd:element name="gadget" type="DebugType" />
             <xsd:element name="debug" type="DebugType" />
         </xsd:sequence>
     </xsd:complexType>

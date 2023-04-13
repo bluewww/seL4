@@ -31,6 +31,11 @@
 #include <arch/machine/capdl.h>
 #endif
 
+#ifdef CONFIG_KERNEL_SHARED_GADGET
+/* gadget of the size of the LLC. Will be placed in shared .bss */
+char gadget[512*1024];
+#endif
+
 /* The haskell function 'handleEvent' is split into 'handleXXX' variants
  * for each event causing a kernel entry */
 
@@ -69,6 +74,21 @@ exception_t handleInterruptEntry(void)
 
 exception_t handleUnknownSyscall(word_t w)
 {
+#ifdef CONFIG_KERNEL_SHARED_GADGET
+    if (w == SysAccessSharedGadget) {
+        unsigned int sets = getRegister(NODE_STATE(ksCurThread), capRegister);
+        for (unsigned int s = 0; s < sets; s++) {
+            /* LLC Associativity = 8*/
+            for (unsigned int i = 0; i < 8; i++) {
+                /* LLC Line Width = 64, Number of Sets = 1024 */
+                void *v = gadget + s * 64 + i * 64 * 1024;
+                volatile unsigned int rv;
+                asm volatile("lw %0, 0(%1)": "=r" (rv): "r" (v):);
+            }
+        }
+        return EXCEPTION_NONE;
+    }
+#endif
 #ifdef CONFIG_PRINTING
     if (w == SysDebugPutChar) {
         kernel_putchar(getRegister(NODE_STATE(ksCurThread), capRegister));
