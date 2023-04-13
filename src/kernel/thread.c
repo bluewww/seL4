@@ -373,6 +373,9 @@ static void scheduleChooseNewThread(void)
 #ifdef CONFIG_DOMAIN_MICROARCH_FLUSH
         arch_domainswitch_flush();
 #endif
+#ifdef CONFIG_DOMAIN_LLC_FLUSH
+        arch_domainswitch_llc_flush();
+#endif
     }
     chooseThread();
 }

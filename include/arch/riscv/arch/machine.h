@@ -306,4 +306,13 @@ static inline void arch_domainswitch_flush(void)
 }
 #endif
 
+#ifdef CONFIG_DOMAIN_LLC_FLUSH
+static inline void arch_domainswitch_llc_flush(void)
+{
+    /* LLC flush. */
+    volatile word_t *llc_flush_reg = ptrFromPAddr(0x50000008);
+    *llc_flush_reg = 0xff;
+}
+#endif
+
 #endif // __ASSEMBLER__

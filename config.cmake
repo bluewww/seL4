@@ -322,6 +322,11 @@ config_option(
     DEFAULT OFF
 )
 
+config_option(
+    KernelDomainLLCFlush DOMAIN_LLC_FLUSH "Flush the LLC on domain switch"
+    DEFAULT OFF
+)
+
 config_string(
     KernelNumPriorities NUM_PRIORITIES "The number of priority levels per domain. Valid range 1-256"
     DEFAULT 256
