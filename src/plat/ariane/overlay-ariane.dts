@@ -7,6 +7,6 @@
 / {
 	chosen {
 		seL4,kernel-devices =
-		    &{/soc/interrupt-controller@c000000};
+		    &{/soc/interrupt-controller@4000000};
 	};
 };

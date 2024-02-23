@@ -127,7 +127,7 @@ elseif(KernelArchRiscV)
     # Determine if GNU toolchain is used and if yes, whether GCC version >= 11.3 (implies binutils version >= 2.38)
     if(
         CMAKE_ASM_COMPILER_ID STREQUAL "GNU"
-        AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "11.3"
+        AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL "11.2"
     )
         # Manually enable Zicsr and Zifencei extensions
         # This became necessary due to a change in the default ISA version in GNU binutils 2.38 which is the
